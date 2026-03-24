@@ -5,6 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart' show FileOptions;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../../../core/utils/local_storage.dart';
+import '../../../../core/utils/error_handler.dart';
+import '../../../../core/utils/retry_helper.dart';
 import '../../../../shared/providers/supabase_provider.dart';
 import '../../domain/entities/inscription_entity.dart';
 import '../../domain/entities/session_formation_entity.dart';
@@ -125,14 +127,27 @@ class InscriptionFormNotifier extends StateNotifier<InscriptionFormState> {
       state = state.copyWith(progressMessage: 'Enregistrement du dossier...');
       final fcmToken = kIsWeb ? null : await FirebaseMessaging.instance.getToken();
 
-      // Submit to Edge Function
-      final response = await _ref.read(supabaseClientProvider).functions.invoke(
-        'submit-inscription',
-        body: formData.toJson(
-          photoUrl: photoUrl,
-          cvUrl: cvUrl,
-          fcmToken: fcmToken,
+      // Submit to Edge Function with retry logic for network errors
+      final response = await RetryHelper.retryIf(
+        () => _ref.read(supabaseClientProvider).functions.invoke(
+          'submit-inscription',
+          body: formData.toJson(
+            photoUrl: photoUrl,
+            cvUrl: cvUrl,
+            fcmToken: fcmToken,
+          ),
         ),
+        shouldRetry: (error) {
+          // Réessayer uniquement pour les erreurs réseau
+          final errorStr = error.toString().toLowerCase();
+          return errorStr.contains('timeout') ||
+                 errorStr.contains('connection') ||
+                 errorStr.contains('network') ||
+                 errorStr.contains('failed to fetch');
+        },
+        maxAttempts: 3,
+        initialDelay: 1000,
+        maxDelay: 5000,
       );
 
       if (response.data['success'] != true) {
@@ -157,9 +172,11 @@ class InscriptionFormNotifier extends StateNotifier<InscriptionFormState> {
         session: SessionFormationEntity.fromJson(sessionData),
       );
     } catch (e) {
+      // Utiliser le gestionnaire d'erreurs pour afficher un message amical
+      final friendlyMessage = ErrorHandler.getFriendlyMessage(e);
       state = state.copyWith(
         status: InscriptionStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: friendlyMessage,
       );
     }
   }

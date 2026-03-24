@@ -82,12 +82,12 @@ CREATE TABLE IF NOT EXISTS public.sessions_formation (
 );
 
 -- ============================================================
--- MIGRATION: Ajouter UNIQUE sur titre (si table existe déjà)
+-- MIGRATION: Ajouter contraintes UNIQUE (si table existe déjà)
 -- ============================================================
 DO
 $$
 BEGIN
-  -- Essayer d'ajouter la contrainte UNIQUE si elle n'existe pas
+  -- Essayer d'ajouter la contrainte UNIQUE sur titre
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.table_constraints
     WHERE table_name = 'sessions_formation'
@@ -95,6 +95,16 @@ BEGIN
     AND constraint_name LIKE '%titre%'
   ) THEN
     ALTER TABLE public.sessions_formation ADD CONSTRAINT sessions_formation_titre_key UNIQUE (titre);
+  END IF;
+
+  -- Email UNIQUE sur inscriptions (déjà défini, mais vérifier)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'inscriptions'
+    AND constraint_type = 'UNIQUE'
+    AND constraint_name LIKE '%email%'
+  ) THEN
+    ALTER TABLE public.inscriptions ADD CONSTRAINT inscriptions_email_key UNIQUE (email);
   END IF;
 END
 $$;

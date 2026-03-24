@@ -1,0 +1,47 @@
+'use client';
+
+import { Download, LogOut, Shield } from 'lucide-react';
+
+interface HeaderProps {
+  totalInscriptions: number;
+  onExport: () => void;
+}
+
+export default function Header({ totalInscriptions, onExport }: HeaderProps) {
+  return (
+    <header className="border-b border-border/30 bg-surface/50 backdrop-blur-sm sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-6 flex items-center justify-between max-w-7xl">
+        <div className="flex items-center gap-3">
+          <Shield className="w-8 h-8 text-primary glow-primary" />
+          <div>
+            <h1 className="text-2xl font-bold font-mono glow-primary">
+              NADIRX ADMIN
+            </h1>
+            <p className="text-xs text-secondary font-mono">
+              Inscriptions Management System
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-6">
+          <div className="text-right">
+            <p className="text-primary font-mono font-bold text-xl glow-primary">
+              {totalInscriptions}
+            </p>
+            <p className="text-xs text-secondary font-mono">Inscriptions</p>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={onExport}
+              className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 border border-primary rounded transition-colors text-primary font-mono text-sm"
+            >
+              <Download className="w-4 h-4" />
+              Export CSV
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}

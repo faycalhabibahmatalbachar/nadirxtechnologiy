@@ -109,16 +109,17 @@ class InscriptionFormNotifier extends StateNotifier<InscriptionFormState> {
     );
 
     try {
-      // Upload photo
+      // ⚡ Paralléliser les uploads: photo obligatoire + CV optionnel en même temps
       state = state.copyWith(progressMessage: 'Upload de la photo...');
-      final photoUrl = await _uploadPhoto();
-
-      // Upload CV (optionnel)
-      String? cvUrl;
-      if (formData.cvPath != null) {
-        state = state.copyWith(progressMessage: 'Upload des documents...');
-        cvUrl = await _uploadCV();
-      }
+      
+      final photoUploadFuture = _uploadPhoto();
+      final cvUploadFuture = formData.cvPath != null 
+        ? _uploadCV() 
+        : Future<String?>.value(null);
+      
+      // Exécuter les deux en parallèle, puis attendre les résultats
+      final photoUrl = await photoUploadFuture;
+      final cvUrl = await cvUploadFuture;
 
       // Get FCM token
       state = state.copyWith(progressMessage: 'Enregistrement du dossier...');

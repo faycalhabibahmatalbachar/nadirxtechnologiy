@@ -126,7 +126,7 @@ class _TerminalProgressOverlayState extends State<TerminalProgressOverlay> {
         _displayedMessages.add(widget.messages[_currentMessageIndex]);
       });
       _currentMessageIndex++;
-      _messageTimer = Timer(const Duration(milliseconds: 500), _showNextMessage);
+      _messageTimer = Timer(const Duration(milliseconds: 150), _showNextMessage);  // Accéléré: 500ms → 150ms ⚡
     } else {
       widget.onComplete?.call();
     }

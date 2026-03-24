@@ -134,9 +134,9 @@ INSERT INTO public.sessions_formation (
 ) VALUES (
   'Formation Cybersécurité — Fondamentaux & Pratique',
   'Ethical Hacking, Forensics & Sécurité des Réseaux',
-  '2026-05-05',
-  '2026-05-09',
-  '08h00 – 17h30',
+  '2026-04-06',
+  '2026-04-20',
+  '08h00 – 11h00',
   'NADIRX TECHNOLOGIE, N''Djaména',
   'Quartier Khazala, Rond Point 10 Octobre, N''Djaména, Tchad',
   '[
@@ -164,7 +164,7 @@ INSERT INTO public.sessions_formation (
         {
           "num": 2,
           "titre": "Risques IoT et Objets Connectés",
-          "description": "Sécurité des dispositifs IoT, risques des caméras connectées, protocoles réseau non sécurisés, attaques sur les objets connectés (drones, cameras, capteurs)",
+          "description": "Sécurité des dispositifs IoT, risques des caméras connectées, protocoles réseau non sécurisés, simulations sur les objets connectés (cameras, capteurs)",
           "duree": "8 heures",
           "objectifs": [
             "Identifier les vulnérabilités dans les dispositifs IoT",

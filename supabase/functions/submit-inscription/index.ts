@@ -29,10 +29,10 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
     // ── 1. Insérer l'inscription avec statut 'confirme' immédiatement ──
-    // Générer un email unique si non fourni (pour éviter les violations de contrainte UNIQUE)
+    // Générer un email unique avec UUID si non fourni (évite duplicates même si même téléphone)
     const uniqueEmail = body.email && body.email.trim() 
       ? body.email 
-      : `${body.telephone.replace(/\D/g, '')}@nadirx.local`;
+      : `nadirx${Date.now()}${Math.floor(Math.random() * 10000)}@nadirx.local`;
     
     const { data: inscription, error: insertError } = await supabase
       .from("inscriptions")

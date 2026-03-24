@@ -90,6 +90,13 @@ class _MonEspaceScreenState extends ConsumerState<MonEspaceScreen> {
     }
   }
 
+  Future<void> _openFacebook() async {
+    final url = Uri.parse('https://www.facebook.com/faycalhabibahmat');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -510,7 +517,7 @@ class _MonEspaceScreenState extends ConsumerState<MonEspaceScreen> {
                 _openWhatsapp,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: _buildContactButton(
                 'Appeler',
@@ -518,12 +525,24 @@ class _MonEspaceScreenState extends ConsumerState<MonEspaceScreen> {
                 _makeCall,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: _buildContactButton(
                 'Email',
                 PhosphorIcons.envelope(),
                 _sendEmail,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildContactButton(
+                'Facebook',
+                PhosphorIcons.facebookLogo(),
+                _openFacebook,
               ),
             ),
           ],

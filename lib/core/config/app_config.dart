@@ -19,6 +19,7 @@ class AppConfig {
   static const String contactWhatsapp = '+23568663737';
   static const String contactEmail = 'nadirxtechnology@gmail.com';
   static const String contactPhone = '+23568881226';
+  static const String contactFacebook = 'https://www.facebook.com/faycalhabibahmat';
 
   // Local Storage keys
   static const String keyInscriptionId = 'inscription_id';

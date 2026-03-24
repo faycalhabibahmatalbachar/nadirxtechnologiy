@@ -29,6 +29,11 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
     // ── 1. Insérer l'inscription avec statut 'confirme' immédiatement ──
+    // Générer un email unique si non fourni (pour éviter les violations de contrainte UNIQUE)
+    const uniqueEmail = body.email && body.email.trim() 
+      ? body.email 
+      : `${body.telephone.replace(/\D/g, '')}@nadirx.local`;
+    
     const { data: inscription, error: insertError } = await supabase
       .from("inscriptions")
       .insert({
@@ -37,7 +42,7 @@ serve(async (req) => {
         date_naissance:        body.date_naissance,
         genre:                 body.genre,
         nationalite:           body.nationalite ?? 'Tchadienne',
-        email:                 body.email,
+        email:                 uniqueEmail,
         telephone:             body.telephone,
         ville:                 body.ville,
         quartier:              body.quartier,
@@ -60,9 +65,10 @@ serve(async (req) => {
       throw insertError;
     }
 
-    // ── 2. Notification push FCM ──
+    // ── 2. Notification push FCM enrichie ──
     if (inscription.fcm_token && FCM_KEY) {
       try {
+        const fullName = `${inscription.prenom} ${inscription.nom}`;
         await fetch("https://fcm.googleapis.com/fcm/send", {
           method: "POST",
           headers: {
@@ -72,13 +78,16 @@ serve(async (req) => {
           body: JSON.stringify({
             to: inscription.fcm_token,
             notification: {
-              title: `Bienvenue, ${inscription.prenom} ! 🛡️`,
-              body:  "Votre place est confirmée. NADIRX TECHNOLOGIE vous attend.",
+              title: `Bienvenue ${fullName}! 🛡️`,
+              body:  "Votre inscription est confirmée. Vous pouvez consulter votre profil.",
               sound: "default",
+              image: inscription.photo_participant_url || undefined,
             },
             data: {
               type:           "bienvenue",
               inscription_id: inscription.id,
+              full_name:      fullName,
+              photo_url:      inscription.photo_participant_url || "",
               click_action:   "FLUTTER_NOTIFICATION_CLICK",
             },
             android: {
@@ -87,6 +96,15 @@ serve(async (req) => {
                 channel_id: "nadirx_channel",
                 color:      "#00FF88",
                 icon:       "ic_notification",
+                image:      inscription.photo_participant_url || undefined,
+              },
+            },
+            webpush: {
+              notification: {
+                title: `Bienvenue ${fullName}! 🛡️`,
+                body:  "Votre inscription est confirmée.",
+                image: inscription.photo_participant_url || undefined,
+                badge: "https://xbrlpovbwwyjvefblmuz.supabase.co/storage/v1/object/public/participant-photos/nadirx-badge.png",
               },
             },
           }),

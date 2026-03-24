@@ -129,6 +129,7 @@ Cliquer "Save"
 6. Cliquer le "..." à côté du déploiement récent
 7. Cliquer "Redeploy"
 8. Attendre quelques secondes
+
 9. ✅ Le déploiement vire au vert = variables activées!
 
 ---

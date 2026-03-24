@@ -8,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ============================================================
 -- TABLE PRINCIPALE : inscriptions
 -- ============================================================
-CREATE TABLE public.inscriptions (
+CREATE TABLE IF NOT EXISTS public.inscriptions (
   id                    UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
   -- ── IDENTITÉ ──────────────────────────────────────────────
@@ -64,7 +64,7 @@ CREATE TABLE public.inscriptions (
 -- ============================================================
 -- TABLE : sessions_formation
 -- ============================================================
-CREATE TABLE public.sessions_formation (
+CREATE TABLE IF NOT EXISTS public.sessions_formation (
   id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   titre            VARCHAR(200) NOT NULL,
   sous_titre       VARCHAR(300),
@@ -84,7 +84,7 @@ CREATE TABLE public.sessions_formation (
 -- ============================================================
 -- TABLE : notifications_log
 -- ============================================================
-CREATE TABLE public.notifications_log (
+CREATE TABLE IF NOT EXISTS public.notifications_log (
   id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   inscription_id   UUID REFERENCES public.inscriptions(id) ON DELETE CASCADE,
   type             VARCHAR(50),
@@ -106,6 +106,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS inscriptions_updated_at ON public.inscriptions;
 CREATE TRIGGER inscriptions_updated_at
   BEFORE UPDATE ON public.inscriptions
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
@@ -118,10 +119,12 @@ ALTER TABLE public.inscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sessions_formation ENABLE ROW LEVEL SECURITY;
 
 -- Lecture publique par ID
+DROP POLICY IF EXISTS "lecture_par_id" ON public.inscriptions;
 CREATE POLICY "lecture_par_id" ON public.inscriptions
   FOR SELECT USING (true);
 
 -- Sessions : lisibles par tous
+DROP POLICY IF EXISTS "sessions_publiques" ON public.sessions_formation;
 CREATE POLICY "sessions_publiques" ON public.sessions_formation
   FOR SELECT USING (active = true);
 
@@ -226,7 +229,10 @@ INSERT INTO public.sessions_formation (
   ]',
   '{"whatsapp": "+23568663737", "email": "nadirxtechnology@gmail.com", "telephone": "+23568881226/91912191", "facebook": "https://www.facebook.com/faycalhabibahmat"}',
   25
-);
+) ON CONFLICT (titre) DO UPDATE SET 
+  programme = EXCLUDED.programme,
+  contacts = EXCLUDED.contacts,
+  instructeurs = EXCLUDED.instructeurs;
 
 -- ============================================================
 -- CRÉER UN ADMIN (optionnel)

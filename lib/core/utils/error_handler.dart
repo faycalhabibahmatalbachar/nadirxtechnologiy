@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 
 enum ErrorType {
   noInternet,      // Pas de connexion internet
@@ -27,7 +26,6 @@ class ErrorHandler {
       case ErrorType.serverError:
         return 'Erreur serveur temporaire.\nRéessayez dans quelques instants.';
       case ErrorType.unknown:
-      default:
         return 'Une erreur est survenue.\nRéessayez ou contactez le support.';
     }
   }

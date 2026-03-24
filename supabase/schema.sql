@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS public.inscriptions (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.sessions_formation (
   id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  titre            VARCHAR(200) NOT NULL,
+  titre            VARCHAR(200) NOT NULL UNIQUE,
   sous_titre       VARCHAR(300),
   date_debut       DATE NOT NULL,
   date_fin         DATE NOT NULL,
@@ -80,6 +80,24 @@ CREATE TABLE IF NOT EXISTS public.sessions_formation (
   active           BOOLEAN DEFAULT TRUE,
   created_at       TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- ============================================================
+-- MIGRATION: Ajouter UNIQUE sur titre (si table existe déjà)
+-- ============================================================
+DO
+$$
+BEGIN
+  -- Essayer d'ajouter la contrainte UNIQUE si elle n'existe pas
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'sessions_formation'
+    AND constraint_type = 'UNIQUE'
+    AND constraint_name LIKE '%titre%'
+  ) THEN
+    ALTER TABLE public.sessions_formation ADD CONSTRAINT sessions_formation_titre_key UNIQUE (titre);
+  END IF;
+END
+$$;
 
 -- ============================================================
 -- TABLE : notifications_log

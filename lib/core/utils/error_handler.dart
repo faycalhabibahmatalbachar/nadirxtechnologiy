@@ -20,7 +20,7 @@ class ErrorHandler {
       case ErrorType.timeout:
         return 'Connexion trop lente.\nVérifiez votre réseau et réessayez.';
       case ErrorType.duplicateEmail:
-        return 'Cet email est déjà utilisé.\nEntrez un autre email ou contactez le support.';
+        return 'Cette inscription existe déjà.\nVérifiez vos données ou contactez le support.';
       case ErrorType.badRequest:
         return 'Données invalides.\nVérifiez le formulaire et réessayez.';
       case ErrorType.serverError:

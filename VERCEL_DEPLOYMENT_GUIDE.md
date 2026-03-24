@@ -24,7 +24,7 @@ Ce guide explique comment déployer :
    git init
    git add .
    git commit -m "Initial commit: NADIRX app avec admin dashboard"
-   git remote add origin https://github.com/YOUR_USERNAME/nadirx-technologie.git
+   git remote add origin https://github.com/YOUR_USERNAME/nadirxtechnology.git
    git branch -M main
    git push -u origin main
    ```
@@ -99,7 +99,7 @@ Si vous voulez ajouter un lien vers l'admin dashboard:
 1. Éditer `lib/main.dart`
 2. Ajouter une constante:
    ```dart
-   const String ADMIN_DASHBOARD_URL = 'https://nadirx-technologie.vercel.app';
+   const String ADMIN_DASHBOARD_URL = 'https://nadirxtechnology.vercel.app';
    ```
 3. Utiliser cette URL pour les liens admin
 
@@ -136,7 +136,7 @@ Android: Google Play Store (après build)
 1. Ouvrir l'app sur téléphone
 2. Soumettre une nouvelle inscription
 3. La nouvelle inscription doit apparaître dans:
-   - Dashboard admin (https://nadirx-technologie.vercel.app)
+   - Dashboard admin (https://nadirxtechnology.vercel.app)
    - Base de données Supabase
 
 ## 5️⃣ Variables d'environnement - Résumé
@@ -170,7 +170,7 @@ final supabase = Supabase.instance.client;
 1. **Chez votre fournisseur DNS**
    - Ajouter un enregistrement CNAME:
    ```
-   admin.nadirx-td.com → nadirx-technologie.vercel.app
+   admin.nadirx-td.com → nadirxtechnology.vercel.app
    ```
 
 2. **Dans Vercel**
@@ -288,7 +288,7 @@ final supabase = Supabase.instance.client;
 
 1. **Sauvegarder les URLs publiques**
    ```
-   Admin: https://nadirx-technologie.vercel.app
+   Admin: https://nadirxtechnology.vercel.app
    API: https://xbrlpovbwwyjvefblmuz.supabase.co
    ```
 

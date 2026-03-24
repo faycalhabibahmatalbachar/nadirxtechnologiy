@@ -179,7 +179,7 @@ Admin Dashboard (Next.js) on Vercel
    - Test public URL
 
 2. **Verify Deployment** (5 mins)
-   - Admin dashboard loads at https://nadirx-technologie.vercel.app
+   - Admin dashboard loads at https://nadirxtechnology.vercel.app
    - Inscriptions display correctly
    - Mobile data syncs in real-time
    - Edit/save functions work

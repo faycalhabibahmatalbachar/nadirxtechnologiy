@@ -49,7 +49,7 @@ No changes needed - Vercel will auto-detect this!
 ## Testing After Deployment
 
 1. **Open your deployment URL**
-   - Default: https://nadirx-technologie.vercel.app
+   - Default: https://nadirxtechnology.vercel.app
    - Or custom domain if configured
 
 2. **Check these work:**
@@ -71,7 +71,7 @@ No changes needed - Vercel will auto-detect this!
 ## Domain Setup (Optional)
 
 ### Without Custom Domain
-- Your admin is live at: `https://nadirx-technologie.vercel.app`
+- Your admin is live at: `https://nadirxtechnology.vercel.app`
 - This works great for internal use!
 
 ### With Custom Domain
@@ -97,7 +97,7 @@ After deployment, you have:
 
 ```
 Admin Dashboard
-URL: https://nadirx-technologie.vercel.app
+URL: https://nadirxtechnology.vercel.app
 Status: ✅ Public & Accessible
 
 Supabase Backend

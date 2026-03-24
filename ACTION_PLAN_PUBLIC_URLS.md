@@ -52,11 +52,11 @@ git commit -m "Initial: NADIRX app + admin dashboard"
 
 # Créer un repo sur GitHub
 # Aller à https://github.com/new
-# Créer repo "nadirx-technologie"
+# Créer repo "nadirxtechnology"
 # Copier l'URL du repo
 
 # Puis:
-git remote add origin https://github.com/YOUR_USERNAME/nadirx-technologie.git
+git remote add origin https://github.com/YOUR_USERNAME/nadirxtechnology.git
 git branch -M main
 git push -u origin main
 ```
@@ -65,7 +65,7 @@ git push -u origin main
 1. Aller à https://vercel.com/new
 2. Cliquer "Import Git Repository"
 3. Connecter GitHub
-4. Sélectionner le repo "nadirx-technologie"
+4. Sélectionner le repo "nadirxtechnology"
 5. Cliquer "Import"
 6. **Dans "Configure Project":**
    - Framework: Next.js ✅
@@ -76,7 +76,7 @@ git push -u origin main
 8. ✅ Vous verrez: "Congratulations! Your site is live"
 9. Cliquer le lien fourni
 
-**URL finale**: https://nadirx-technologie.vercel.app ✅
+**URL finale**: https://nadirxtechnology.vercel.app ✅
 
 #### Option B: Vercel CLI (Manuel - Plus direct)
 
@@ -105,7 +105,7 @@ vercel --prod
 **Dans Vercel Dashboard:**
 
 1. Aller à https://vercel.com/dashboard
-2. Cliquer sur le projet "nadirx-technologie"
+2. Cliquer sur le projet "nadirxtechnology"
 3. Aller à **Settings** → **Environment Variables**
 4. Cliquer "Add New"
 
@@ -151,7 +151,7 @@ Vérifier:
 **Test 2: Synchronisation Mobile**
 1. Ouvrir l'app mobile sur téléphone
 2. Soumettre une nouvelle inscription
-3. **Immédiatement** aller sur https://nadirx-technologie.vercel.app
+3. **Immédiatement** aller sur https://nadirxtechnology.vercel.app
 4. Vérifier que la nouvelle inscription apparaît ✅
 
 **Test 3: Fonctionnalité Admin**
@@ -172,7 +172,7 @@ Créer un fichier `PUBLIC_URLS.txt`:
 === NADIRX TECHNOLOGIE - URLS PUBLIQUES ===
 
 Admin Dashboard:
-  URL: https://nadirx-technologie.vercel.app
+  URL: https://nadirxtechnology.vercel.app
   Status: LIVE ✅
   Accessible: Partout dans le monde
   
@@ -188,7 +188,7 @@ Web Version:
   
 === Partager le lien ===
 Donner ceci à l'équipe NADIRX:
-https://nadirx-technologie.vercel.app
+https://nadirxtechnology.vercel.app
 ```
 
 **Envoyer à l'équipe**
@@ -208,9 +208,9 @@ Mobile: Pointe vers localhost (impossible)
 
 ### Après (Public) ✅
 ```
-Admin: https://nadirx-technologie.vercel.app
+Admin: https://nadirxtechnology.vercel.app
 Mobile: Pointe vers Supabase public (déjà configuré)
-Web: https://nadirx-technologie.vercel.app
+Web: https://nadirxtechnology.vercel.app
 ```
 
 ---
@@ -267,7 +267,7 @@ Web: https://nadirx-technologie.vercel.app
 
 ### Après
 ```
-✅ Admin en ligne: https://nadirx-technologie.vercel.app
+✅ Admin en ligne: https://nadirxtechnology.vercel.app
 ✅ Mobile et Desktop synchro en temps réel
 ✅ Accessible de partout (téléphone, ordinateur)
 ✅ URLs simples et professionnelles

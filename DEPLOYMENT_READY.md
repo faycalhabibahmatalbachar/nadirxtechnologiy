@@ -9,7 +9,7 @@ Votre admin dashboard est **optimisé et prêt à être déployé en ligne** ✅
 ## 🎯 Votre Objectif
 Avoir l'admin dashboard accessible publiquement (pas juste localhost)
 
-**URL cible**: https://nadirx-technologie.vercel.app
+**URL cible**: https://nadirxtechnology.vercel.app
 
 ---
 
@@ -48,13 +48,11 @@ Avoir l'admin dashboard accessible publiquement (pas juste localhost)
 git init
 git add .
 git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/nadirx-technologie.git
-git push -u origin main
-
+   git remote add origin https://github.com/YOUR_USERNAME/nadirxtechnology.git
 # 2. Aller sur Vercel
 # https://vercel.com/new
 # → Import Git Repository
-# → Select nadirx-technologie
+# → Select nadirxtechnology
 # → Root Directory: admin
 # → Deploy
 
@@ -63,7 +61,7 @@ git push -u origin main
 # NEXT_PUBLIC_SUPABASE_ANON_KEY: (your key)
 # → Redeploy
 
-✅ Fini! Admin accessible à https://nadirx-technologie.vercel.app
+✅ Fini! Admin accessible à https://nadirxtechnology.vercel.app
 ```
 
 ---
@@ -81,7 +79,7 @@ git push -u origin main
 - **Références**: 3 guides de déploiement complets
 
 ### 🔗 Résultat
-- Admin: localhost:3000 → https://nadirx-technologie.vercel.app
+- Admin: localhost:3000 → https://nadirxtechnology.vercel.app
 - Mobile: Inchangé (déjà pointe vers Supabase public)
 - Tous deux synchro en temps réel ✅
 
@@ -105,7 +103,7 @@ git push -u origin main
 - [ ] J'ai créé un repo GitHub
 - [ ] J'ai déployé sur Vercel
 - [ ] J'ai ajouté les variables d'environnement
-- [ ] J'ai testé https://nadirx-technologie.vercel.app
+- [ ] J'ai testé https://nadirxtechnology.vercel.app
 - [ ] Les inscriptions s'affichent correctement
 - [ ] Je peux modifier et sauvegarder une inscription
 - [ ] Les photos se chargent
@@ -130,7 +128,7 @@ git push -u origin main
 
 ## 🎯 Après Déploiement
 
-1. ✅ Partager l'URL: https://nadirx-technologie.vercel.app
+1. ✅ Partager l'URL: https://nadirxtechnology.vercel.app
 2. ✅ Tester sur mobile: soumettre → voir dans admin
 3. ✅ Équipe peut modifier les inscriptions en ligne
 4. ✅ Suivi en temps réel des soumissions

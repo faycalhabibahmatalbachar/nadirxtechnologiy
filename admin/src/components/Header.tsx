@@ -21,8 +21,8 @@ export default function Header({ totalInscriptions, onExport }: HeaderProps) {
       <div className="container mx-auto px-4 py-6 flex items-center justify-between max-w-7xl">
         <div className="flex items-center gap-3">
           <img
-            src="/logo.png"
-            alt="NADIRX TECHNOLOGY"
+            src="/icon.png"
+            alt="NADIRX"
             className="w-9 h-9 rounded border border-border/30 bg-surface/30 object-contain"
           />
           <div>

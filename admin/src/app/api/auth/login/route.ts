@@ -1,33 +1,25 @@
 import { NextResponse } from 'next/server';
 
-function getAllowedIdentifiers(): string[] {
-  const raw = (process.env.ADMIN_LOGIN_IDENTIFIERS || '').trim();
-  if (!raw) return [];
-  return raw
-    .split(',')
-    .map(s => s.trim().toLowerCase())
-    .filter(Boolean);
-}
+const ADMIN_USERNAME = 'faycalhabibahmat';
+const ADMIN_USERNAME_EMAIL = 'faycalhabibahmat@gmail.com';
+const ADMIN_PASSWORD = 'Password235@#!';
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const username = (body?.username ?? '').toString().trim().toLowerCase();
   const password = (body?.password ?? '').toString();
 
-  const allowed = getAllowedIdentifiers();
-  const okUser = allowed.length > 0 ? allowed.includes(username) : false;
-  const adminPassword = process.env.ADMIN_PASSWORD || '';
+  const okUser = username === ADMIN_USERNAME || username === ADMIN_USERNAME_EMAIL;
 
-  if (!okUser || !adminPassword || password !== adminPassword) {
+  if (!okUser || password !== ADMIN_PASSWORD) {
     return NextResponse.json(
       { ok: false, error: 'Accès non autorisé' },
       { status: 401 },
     );
   }
 
-  const token = process.env.ADMIN_SESSION_TOKEN || '1';
   const res = NextResponse.json({ ok: true });
-  res.cookies.set('nadirx_admin', token, {
+  res.cookies.set('nadirx_admin', '1', {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
@@ -35,4 +27,3 @@ export async function POST(req: Request) {
   });
   return res;
 }
-

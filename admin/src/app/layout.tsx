@@ -4,9 +4,6 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'NADIRX TECHNOLOGY — Admin',
   description: 'Admin dashboard for NADIRX TECHNOLOGY inscriptions management',
-  icons: {
-    icon: '/logo.png',
-  },
 };
 
 export default function RootLayout({
@@ -16,7 +13,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className="bg-dark text-white font-sans">{children}</body>
+      <body className="bg-dark text-white font-sans">
+        {children}
+      </body>
     </html>
   );
 }

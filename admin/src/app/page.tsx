@@ -39,7 +39,7 @@ export default function Dashboard() {
       setInscriptions(data || []);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors du chargement');
+      setError(err instanceof Error ? err.message : 'Error fetching inscriptions');
     } finally {
       setLoading(false);
     }
@@ -51,13 +51,17 @@ export default function Dashboard() {
     if (filters.name) {
       const term = filters.name.toLowerCase();
       filtered = filtered.filter(
-        i => i.nom.toLowerCase().includes(term) || i.prenom.toLowerCase().includes(term),
+        i =>
+          i.nom.toLowerCase().includes(term) ||
+          i.prenom.toLowerCase().includes(term)
       );
     }
 
     if (filters.phone) {
       const digits = filters.phone.replace(/[^0-9]/g, '');
-      filtered = filtered.filter(i => i.telephone.replace(/[^0-9]/g, '').includes(digits));
+      filtered = filtered.filter(i =>
+        i.telephone.replace(/[^0-9]/g, '').includes(digits)
+      );
     }
 
     setFilteredInscriptions(filtered);
@@ -88,17 +92,21 @@ export default function Dashboard() {
   };
 
   const handleInscriptionUpdate = (updatedInscription: Inscription) => {
-    setInscriptions(prev => prev.map(i => (i.id === updatedInscription.id ? updatedInscription : i)));
+    // Update inscriptions list
+    setInscriptions(prev => 
+      prev.map(i => i.id === updatedInscription.id ? updatedInscription : i)
+    );
+    // Update selected inscription
     setSelectedInscription(updatedInscription);
   };
 
   return (
     <div className="min-h-screen bg-background bg-gradient-to-br from-background to-dark">
       <div className="grid-bg fixed inset-0 pointer-events-none opacity-10"></div>
-
+      
       <div className="relative z-10">
         <Header totalInscriptions={filteredInscriptions.length} onExport={handleExport} />
-
+        
         <main className="container mx-auto px-4 py-8 max-w-7xl">
           {error && (
             <div className="mb-6 p-4 border border-error bg-error/10 rounded-lg text-error">
@@ -113,7 +121,7 @@ export default function Dashboard() {
               <div className="animate-spin border-4 border-primary border-t-transparent rounded-full w-12 h-12"></div>
             </div>
           ) : (
-            <EnhancedInscriptionsTable
+            <EnhancedInscriptionsTable 
               inscriptions={filteredInscriptions}
               onViewDetails={setSelectedInscription}
             />
@@ -131,4 +139,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

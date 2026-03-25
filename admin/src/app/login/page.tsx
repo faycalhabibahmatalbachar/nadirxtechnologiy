@@ -42,8 +42,8 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md border border-border/30 rounded-lg bg-surface/40 backdrop-blur p-6">
         <div className="flex items-center gap-3 mb-6">
           <img
-            src="/logo.png"
-            alt="NADIRX TECHNOLOGY"
+            src="/icon.png"
+            alt="NADIRX"
             className="w-10 h-10 rounded border border-border/30 bg-surface/30 object-contain"
           />
           <div>
@@ -66,9 +66,8 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-background border border-border/50 rounded text-white font-mono text-sm focus:border-primary focus:outline-none transition-colors"
-                placeholder="Votre email"
-                autoComplete="off"
-                name="admin_identifier"
+                placeholder="Votre identifiant"
+                autoComplete="username"
               />
             </div>
           </div>
@@ -85,8 +84,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-background border border-border/50 rounded text-white font-mono text-sm focus:border-primary focus:outline-none transition-colors"
                 placeholder="Votre mot de passe"
-                autoComplete="off"
-                name="admin_password"
+                autoComplete="current-password"
               />
             </div>
           </div>

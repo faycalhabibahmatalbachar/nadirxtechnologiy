@@ -1,51 +1,22 @@
-import 'dart:convert';
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:supabase_flutter/supabase_flutter.dart' show FunctionException;
 
 enum ErrorType {
-  noInternet, // Pas de connexion internet
-  timeout, // Délai d'attente dépassé
-  serverError, // Erreur 500+
-  badRequest, // Erreur 400-499
-  duplicate, // Doublon (contrainte unique)
-  unknown // Autre erreur
+  noInternet,      // Pas de connexion internet
+  timeout,         // Délai d'attente dépassé
+  serverError,     // Erreur 500+
+  badRequest,      // Erreur 400-499
+  duplicate,       // Doublon (contrainte unique)
+  unknown          // Autre erreur
 }
 
 class ErrorHandler {
-  static Map<String, dynamic>? _extractEdgePayload(dynamic error) {
-    if (error is! FunctionException) return null;
-
-    final details = error.details;
-    if (details is Map) {
-      return details.map((k, v) => MapEntry(k.toString(), v));
-    }
-
-    if (details is String) {
-      try {
-        final decoded = jsonDecode(details);
-        if (decoded is Map<String, dynamic>) return decoded;
-      } catch (_) {
-        // ignore
-      }
-    }
-
-    return null;
-  }
-
-  /// Parse une exception et retourne un message amical.
+  /// Parse une exception et retourne un message amical
   static String getFriendlyMessage(dynamic error) {
-    final payload = _extractEdgePayload(error);
-    if (payload != null) {
-      final message = (payload['error'] ?? '').toString().trim();
-      final hint = (payload['hint'] ?? '').toString().trim();
-
-      if (message.isNotEmpty) {
-        return hint.isNotEmpty ? '$message\n$hint' : message;
-      }
-    }
-
     final errorType = _detectErrorType(error);
+    
     switch (errorType) {
       case ErrorType.noInternet:
         return 'Pas de connexion internet.\nVérifiez votre réseau et réessayez.';
@@ -62,16 +33,30 @@ class ErrorHandler {
     }
   }
 
-  /// Détecte le type d'erreur.
+  /// Détecte le type d'erreur
   static ErrorType _detectErrorType(dynamic error) {
-    final payload = _extractEdgePayload(error);
-    if (error is FunctionException && payload != null) {
-      final errorCode = (payload['error_code'] ?? payload['code'] ?? '').toString();
+    // Erreurs Edge Functions Supabase : essayer de lire un payload JSON
+    if (error is FunctionException) {
+      final details = error.details;
+      Map<String, dynamic>? payload;
+
+      if (details is Map) {
+        payload = details.map((k, v) => MapEntry(k.toString(), v));
+      } else if (details is String) {
+        try {
+          final decoded = jsonDecode(details);
+          if (decoded is Map<String, dynamic>) payload = decoded;
+        } catch (_) {
+          // ignore
+        }
+      }
+
+      final errorCode =
+          (payload?['error_code'] ?? payload?['code'] ?? '').toString();
+
       if (error.status == 409 && errorCode.toUpperCase() == 'DUPLICATE') {
         return ErrorType.duplicate;
       }
-      if (error.status >= 500) return ErrorType.serverError;
-      if (error.status >= 400) return ErrorType.badRequest;
     }
 
     final errorStr = error.toString().toLowerCase();
@@ -87,7 +72,7 @@ class ErrorHandler {
     }
 
     // Timeout
-    if (errorStr.contains('timeout') ||
+    if (errorStr.contains('timeout') || 
         errorStr.contains('timed out') ||
         errorStr.contains('deadline exceeded')) {
       return ErrorType.timeout;
@@ -104,11 +89,11 @@ class ErrorHandler {
         errorStr.contains('invalid') ||
         errorStr.contains('403') ||
         errorStr.contains('404') ||
-        (errorStr.contains('status:') &&
-            (errorStr.contains('400') ||
-                errorStr.contains('401') ||
-                errorStr.contains('403') ||
-                errorStr.contains('404')))) {
+        (errorStr.contains('status:') && 
+         (errorStr.contains('400') || 
+          errorStr.contains('401') || 
+          errorStr.contains('403') || 
+          errorStr.contains('404')))) {
       return ErrorType.badRequest;
     }
 
@@ -124,7 +109,7 @@ class ErrorHandler {
     return ErrorType.unknown;
   }
 
-  /// Vérifie s'il y a une connexion internet (simple check).
+  /// Vérifie s'il y a une connexion internet (simple check)
   static Future<bool> hasInternetConnection() async {
     try {
       final result = await InternetAddress.lookup('8.8.8.8')
@@ -137,4 +122,3 @@ class ErrorHandler {
     }
   }
 }
-

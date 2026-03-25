@@ -19,7 +19,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 
   const labels: Record<string, string> = {
     confirme: '✓ Confirmé',
-    en_attente: '⏳ En attente',
+    en_attente: '⧖ En attente',
     rejetee: '✗ Rejeté',
   };
 
@@ -41,10 +41,10 @@ const TagBadge = ({ tag }: { tag?: string }) => {
   };
 
   const labels: Record<string, string> = {
-    prioritaire: 'Prioritaire',
-    a_rappeler: 'À rappeler',
-    doublon: 'Doublon',
-    vip: 'VIP',
+    prioritaire: '🔴 Prioritaire',
+    a_rappeler: '🔔 À rappeler',
+    doublon: '⚠ Doublon',
+    vip: '⭐ VIP',
   };
 
   return (
@@ -61,7 +61,7 @@ export default function EnhancedInscriptionsTable({
   const getPhotoUrl = (path: string) => {
     if (!path) return null;
     if (path.startsWith('http')) return path;
-    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/participants/${path}`;
+    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/participant-photos/${path}`;
   };
 
   return (
@@ -72,12 +72,12 @@ export default function EnhancedInscriptionsTable({
             <thead>
               <tr className="border-b border-border/30 bg-surface/50">
                 <th className="px-4 py-3 text-left text-primary font-bold">Photo</th>
-                <th className="px-4 py-3 text-left text-primary font-bold">Nom & contact</th>
+                <th className="px-4 py-3 text-left text-primary font-bold">Nom & Contact</th>
                 <th className="px-4 py-3 text-left text-primary font-bold">Localisation</th>
                 <th className="px-4 py-3 text-left text-primary font-bold">Profil</th>
                 <th className="px-4 py-3 text-left text-primary font-bold">Statut</th>
-                <th className="px-4 py-3 text-left text-primary font-bold">Catégorie</th>
-                <th className="px-4 py-3 text-left text-primary font-bold">Inscrit</th>
+                <th className="px-4 py-3 text-left text-primary font-bold">Tag</th>
+                <th className="px-4 py-3 text-left text-primary font-bold">Date</th>
                 <th className="px-4 py-3 text-left text-primary font-bold">Actions</th>
               </tr>
             </thead>
@@ -98,6 +98,7 @@ export default function EnhancedInscriptionsTable({
                         idx % 2 === 0 ? 'bg-background/30' : ''
                       } ${!inscription.admin_viewed ? 'opacity-100 border-l-2 border-l-primary' : ''}`}
                     >
+                      {/* Photo */}
                       <td className="px-4 py-3">
                         {photoUrl ? (
                           <img
@@ -112,6 +113,7 @@ export default function EnhancedInscriptionsTable({
                         )}
                       </td>
 
+                      {/* Nom & Contact */}
                       <td className="px-4 py-3">
                         <div>
                           <p className="text-primary font-bold">
@@ -124,6 +126,7 @@ export default function EnhancedInscriptionsTable({
                         </div>
                       </td>
 
+                      {/* Localisation */}
                       <td className="px-4 py-3">
                         <div>
                           <p className="text-white">{inscription.ville}</p>
@@ -133,30 +136,36 @@ export default function EnhancedInscriptionsTable({
                         </div>
                       </td>
 
+                      {/* Profil */}
                       <td className="px-4 py-3">
                         <div>
                           <p className="text-xs">
-                            <span className="text-secondary">Situation:</span>{' '}
-                            {inscription.situation_actuelle.replace(/_/g, ' ')}
+                            <span className="text-secondary">Métier:</span> {inscription.situation_actuelle.replace(/_/g, ' ')}
                           </p>
                           <p className="text-xs text-secondary/70 mt-1">
-                            Niveau IT: {inscription.niveau_informatique}
+                            Niveau: {inscription.niveau_informatique}
                           </p>
                         </div>
                       </td>
 
+                      {/* Statut */}
                       <td className="px-4 py-3">
                         <StatusBadge status={inscription.statut} />
                       </td>
 
+                      {/* Tag */}
                       <td className="px-4 py-3">
                         <TagBadge tag={inscription.tag_admin} />
                       </td>
 
+                      {/* Date */}
                       <td className="px-4 py-3 text-xs text-secondary">
-                        {format(new Date(inscription.created_at), 'dd MMM yyyy', { locale: fr })}
+                        {format(new Date(inscription.created_at), 'dd MMM yyyy', {
+                          locale: fr,
+                        })}
                       </td>
 
+                      {/* Actions */}
                       <td className="px-4 py-3">
                         <button
                           onClick={() => onViewDetails?.(inscription)}
@@ -174,7 +183,7 @@ export default function EnhancedInscriptionsTable({
           </table>
         </div>
       </div>
+
     </div>
   );
 }
-

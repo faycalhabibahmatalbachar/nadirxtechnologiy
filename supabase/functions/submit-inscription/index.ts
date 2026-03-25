@@ -78,6 +78,9 @@ serve(async (req) => {
     const body = (await req.json()) as InscriptionBody;
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
+    console.log('Données reçues:', body);
+    console.log('Champs obligatoires:', requiredFields);
+
     const nom = requiredString(body.nom);
     const prenom = requiredString(body.prenom);
     const date_naissance = requiredString(body.date_naissance);
@@ -85,7 +88,6 @@ serve(async (req) => {
     const ville = requiredString(body.ville);
     const situation_actuelle = requiredString(body.situation_actuelle);
     const niveau_informatique = requiredString(body.niveau_informatique);
-    const objectif_formation = requiredString(body.objectif_formation);
     const photo_participant_url = requiredString(body.photo_participant_url);
 
     const requiredFields: Array<[string, string | null]> = [
@@ -96,7 +98,6 @@ serve(async (req) => {
       ['ville', ville],
       ['situation_actuelle', situation_actuelle],
       ['niveau_informatique', niveau_informatique],
-      ['objectif_formation', objectif_formation],
       ['photo_participant_url', photo_participant_url],
     ];
 
@@ -162,10 +163,7 @@ serve(async (req) => {
       if (pgCode === '23502') {
         const field =
           inferNotNullField((insertError as any)?.message) ?? 'unknown';
-        const hint =
-          field === 'email'
-            ? "La base de données attend encore le champ email. Exécutez le SQL pour supprimer/rendre nullable la colonne email (voir `supabase/schema.sql`)."
-            : null;
+        const hint = null;
         return jsonResponse(
           {
             success: false,

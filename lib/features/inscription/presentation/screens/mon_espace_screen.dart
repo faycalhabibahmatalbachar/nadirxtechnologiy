@@ -83,13 +83,6 @@ class _MonEspaceScreenState extends ConsumerState<MonEspaceScreen> {
     }
   }
 
-  Future<void> _sendEmail() async {
-    final url = Uri.parse('mailto:nadirxtechnology@gmail.com');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    }
-  }
-
   Future<void> _openFacebook() async {
     final url = Uri.parse('https://www.facebook.com/faycalhabibahmat');
     if (await canLaunchUrl(url)) {
@@ -523,14 +516,6 @@ class _MonEspaceScreenState extends ConsumerState<MonEspaceScreen> {
                 'Appeler',
                 PhosphorIcons.phone(),
                 _makeCall,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildContactButton(
-                'Email',
-                PhosphorIcons.envelope(),
-                _sendEmail,
               ),
             ),
           ],

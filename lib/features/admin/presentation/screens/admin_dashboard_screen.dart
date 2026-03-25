@@ -5,16 +5,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/widgets/cyber_background.dart';
 import '../../../../core/widgets/cyber_card.dart';
+import '../../../../core/widgets/cyber_text_field.dart';
+import '../../../../core/utils/local_storage.dart';
 import '../../../../shared/providers/supabase_provider.dart';
-
-enum InscriptionFilter { tous, nonVus, prioritaire, aRappeler, doublon, vip }
 
 class AdminDashboardScreen extends ConsumerStatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -24,15 +22,24 @@ class AdminDashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
-  InscriptionFilter _currentFilter = InscriptionFilter.tous;
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
   List<Map<String, dynamic>> _inscriptions = [];
   bool _isLoading = true;
-  Map<String, int> _stats = {};
+  String _nameQuery = '';
+  String _phoneQuery = '';
 
   @override
   void initState() {
     super.initState();
     _loadInscriptions();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadInscriptions() async {
@@ -46,13 +53,6 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
 
       final inscriptions = List<Map<String, dynamic>>.from(response);
 
-      // Calculer les stats
-      _stats = {
-        'total': inscriptions.length,
-        'nonVus': inscriptions.where((i) => i['admin_viewed'] != true).length,
-        'prioritaire': inscriptions.where((i) => i['tag_admin'] == 'prioritaire').length,
-      };
-
       setState(() {
         _inscriptions = inscriptions;
         _isLoading = false;
@@ -63,26 +63,31 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
   }
 
   List<Map<String, dynamic>> get _filteredInscriptions {
-    switch (_currentFilter) {
-      case InscriptionFilter.tous:
-        return _inscriptions;
-      case InscriptionFilter.nonVus:
-        return _inscriptions.where((i) => i['admin_viewed'] != true).toList();
-      case InscriptionFilter.prioritaire:
-        return _inscriptions.where((i) => i['tag_admin'] == 'prioritaire').toList();
-      case InscriptionFilter.aRappeler:
-        return _inscriptions.where((i) => i['tag_admin'] == 'a_rappeler').toList();
-      case InscriptionFilter.doublon:
-        return _inscriptions.where((i) => i['tag_admin'] == 'doublon').toList();
-      case InscriptionFilter.vip:
-        return _inscriptions.where((i) => i['tag_admin'] == 'vip').toList();
-    }
+    final name = _nameQuery.trim().toLowerCase();
+    final phoneDigits = _phoneQuery.replaceAll(RegExp(r'[^0-9]'), '');
+
+    return _inscriptions.where((i) {
+      final prenom = (i['prenom'] ?? '').toString().toLowerCase();
+      final nom = (i['nom'] ?? '').toString().toLowerCase();
+      final fullName = '$prenom $nom'.trim();
+      final tel = (i['telephone'] ?? '')
+          .toString()
+          .replaceAll(RegExp(r'[^0-9]'), '');
+
+      final matchesName = name.isEmpty ||
+          prenom.contains(name) ||
+          nom.contains(name) ||
+          fullName.contains(name);
+      final matchesPhone = phoneDigits.isEmpty || tel.contains(phoneDigits);
+
+      return matchesName && matchesPhone;
+    }).toList();
   }
 
   Future<void> _logout() async {
-    await Supabase.instance.client.auth.signOut();
+    await LocalStorage.logoutAdmin();
     if (mounted) {
-      context.go('/splash');
+      context.go('/admin/login');
     }
   }
 
@@ -166,14 +171,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                 onRefresh: _loadInscriptions,
                 child: CustomScrollView(
                   slivers: [
-                    // Stats
-                    SliverToBoxAdapter(
-                      child: _buildStatsRow(),
-                    ),
-                    // Filtres
-                    SliverToBoxAdapter(
-                      child: _buildFiltersRow(),
-                    ),
+                    // Recherche
+                    SliverToBoxAdapter(child: _buildSearchRow()),
                     // Liste des inscrits
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
@@ -194,120 +193,32 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildStatsRow() {
+  Widget _buildSearchRow() {
     return Padding(
       padding: const EdgeInsets.all(AppDimensions.paddingScreen),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildStatCard(
-              _stats['total']?.toString() ?? '0',
-              AppStrings.adminInscrits,
-              AppColors.primary,
+      child: CyberCard(
+        child: Column(
+          children: [
+            CyberTextField(
+              label: 'Nom / prénom',
+              prefixIcon: PhosphorIcons.magnifyingGlass(),
+              controller: _nameController,
+              textInputAction: TextInputAction.next,
+              onChanged: (v) => setState(() => _nameQuery = v),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              _stats['nonVus']?.toString() ?? '0',
-              AppStrings.adminNonVus,
-              AppColors.secondary,
+            const SizedBox(height: 12),
+            CyberTextField(
+              label: 'Téléphone',
+              prefixIcon: PhosphorIcons.phone(),
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.done,
+              onChanged: (v) => setState(() => _phoneQuery = v),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              _stats['prioritaire']?.toString() ?? '0',
-              AppStrings.adminPrioritaire,
-              AppColors.warning,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     ).animate().fadeIn(duration: 300.ms);
-  }
-
-  Widget _buildStatCard(String value, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: GoogleFonts.shareTechMono(
-              color: color,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              color: AppColors.textSecondary,
-              fontSize: 11,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFiltersRow() {
-    return SizedBox(
-      height: 40,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingScreen),
-        children: InscriptionFilter.values.map((filter) {
-          final isSelected = _currentFilter == filter;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilterChip(
-              label: Text(_getFilterLabel(filter)),
-              selected: isSelected,
-              onSelected: (_) {
-                setState(() {
-                  _currentFilter = filter;
-                });
-              },
-              selectedColor: AppColors.primary.withOpacity(0.2),
-              checkmarkColor: AppColors.primary,
-              labelStyle: GoogleFonts.inter(
-                color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                fontSize: 13,
-              ),
-              side: BorderSide(
-                color: isSelected ? AppColors.primary : AppColors.border,
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    ).animate().fadeIn(duration: 300.ms, delay: 100.ms);
-  }
-
-  String _getFilterLabel(InscriptionFilter filter) {
-    switch (filter) {
-      case InscriptionFilter.tous:
-        return 'Tous';
-      case InscriptionFilter.nonVus:
-        return 'Non vus';
-      case InscriptionFilter.prioritaire:
-        return 'Prioritaire';
-      case InscriptionFilter.aRappeler:
-        return 'À rappeler';
-      case InscriptionFilter.doublon:
-        return 'Doublon';
-      case InscriptionFilter.vip:
-        return 'VIP';
-    }
   }
 
   Widget _buildInscriptionCard(Map<String, dynamic> inscription) {

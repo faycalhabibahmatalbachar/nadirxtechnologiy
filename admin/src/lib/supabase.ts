@@ -17,7 +17,6 @@ export interface Inscription {
   id: string;
   nom: string;
   prenom: string;
-  email: string;
   telephone: string;
   ville: string;
   quartier?: string;

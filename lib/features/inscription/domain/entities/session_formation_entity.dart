@@ -154,19 +154,16 @@ class Instructeur {
 
 class Contacts {
   final String? whatsapp;
-  final String? email;
   final String? telephone;
 
   const Contacts({
     this.whatsapp,
-    this.email,
     this.telephone,
   });
 
   factory Contacts.fromJson(Map<String, dynamic> json) {
     return Contacts(
       whatsapp: json['whatsapp'] as String?,
-      email: json['email'] as String?,
       telephone: json['telephone'] as String?,
     );
   }
@@ -174,7 +171,6 @@ class Contacts {
   Map<String, dynamic> toJson() {
     return {
       'whatsapp': whatsapp,
-      'email': email,
       'telephone': telephone,
     };
   }

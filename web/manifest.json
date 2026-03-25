@@ -1,11 +1,11 @@
 {
-    "name": "nadirx_technologie",
-    "short_name": "nadirx_technologie",
+    "name": "NADIRX TECHNOLOGY",
+    "short_name": "NADIRX",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "NADIRX TECHNOLOGY — Admin & inscriptions.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

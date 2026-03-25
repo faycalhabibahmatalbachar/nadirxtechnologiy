@@ -101,7 +101,7 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
       if (next.status == InscriptionStatus.success && next.inscription != null && next.session != null) {
         showLocalNotification(
           title: 'Bienvenue, ${next.inscription!.prenom} ! 🛡️',
-          body: 'Votre place est confirmée. NADIRX TECHNOLOGIE vous attend.',
+          body: 'Votre place est confirmée. NADIRX TECHNOLOGY vous attend.',
         );
         context.go('/confirmed', extra: {
           'inscription': next.inscription,

@@ -12,7 +12,7 @@ class AppConfig {
   static const String submitFunction = 'submit-inscription';
 
   // App info
-  static const String appName = 'NADIRX TECHNOLOGIE';
+  static const String appName = 'NADIRX TECHNOLOGY';
   static const String appVersion = '1.0.0';
 
   // Contact NADIRX
@@ -24,4 +24,5 @@ class AppConfig {
   // Local Storage keys
   static const String keyInscriptionId = 'inscription_id';
   static const String keyOnboardingSeen = 'onboarding_seen';
+  static const String keyAdminLoggedIn = 'admin_logged_in';
 }

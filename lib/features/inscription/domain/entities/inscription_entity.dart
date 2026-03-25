@@ -5,7 +5,6 @@ class InscriptionEntity {
   final DateTime dateNaissance;
   final String? genre;
   final String nationalite;
-  final String email;
   final String telephone;
   final String ville;
   final String? quartier;
@@ -32,7 +31,6 @@ class InscriptionEntity {
     required this.dateNaissance,
     this.genre,
     this.nationalite = 'Tchadienne',
-    required this.email,
     required this.telephone,
     required this.ville,
     this.quartier,
@@ -65,7 +63,6 @@ class InscriptionEntity {
       dateNaissance: DateTime.parse(json['date_naissance'] as String),
       genre: json['genre'] as String?,
       nationalite: json['nationalite'] as String? ?? 'Tchadienne',
-      email: json['email'] as String,
       telephone: json['telephone'] as String,
       ville: json['ville'] as String,
       quartier: json['quartier'] as String?,
@@ -95,7 +92,6 @@ class InscriptionEntity {
       'date_naissance': dateNaissance.toIso8601String(),
       'genre': genre,
       'nationalite': nationalite,
-      'email': email,
       'telephone': telephone,
       'ville': ville,
       'quartier': quartier,

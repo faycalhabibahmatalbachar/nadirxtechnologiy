@@ -29,6 +29,22 @@ class LocalStorage {
     return await prefs.remove(AppConfig.keyInscriptionId);
   }
 
+  // Admin auth (web)
+  static Future<bool> setAdminLoggedIn(bool value) async {
+    final prefs = await _prefs;
+    return await prefs.setBool(AppConfig.keyAdminLoggedIn, value);
+  }
+
+  static Future<bool> isAdminLoggedIn() async {
+    final prefs = await _prefs;
+    return prefs.getBool(AppConfig.keyAdminLoggedIn) ?? false;
+  }
+
+  static Future<bool> logoutAdmin() async {
+    final prefs = await _prefs;
+    return await prefs.remove(AppConfig.keyAdminLoggedIn);
+  }
+
   // Onboarding
   static Future<bool> setOnboardingSeen() async {
     final prefs = await _prefs;

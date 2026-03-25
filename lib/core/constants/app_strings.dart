@@ -2,7 +2,7 @@ class AppStrings {
   const AppStrings._();
 
   // App
-  static const String appName = 'NADIRX TECHNOLOGIE';
+  static const String appName = 'NADIRX TECHNOLOGY';
   static const String appFullName = 'NADIRX TECHNOLOGY';
   static const String appVersion = '1.0.0';
 
@@ -111,9 +111,9 @@ class AppStrings {
   static const String loadingConfirmation = '> Envoi de la confirmation...';
 
   // Admin
-  static const String adminTitle = '> ADMIN — NADIRX TECHNOLOGIE';
+  static const String adminTitle = '> ADMIN — NADIRX TECHNOLOGY';
   static const String adminLogin = '> ACCÈS ADMINISTRATEUR';
-  static const String adminEmail = 'Email administrateur';
+  static const String adminEmail = 'Identifiant';
   static const String adminPassword = 'Mot de passe';
   static const String adminConnexion = 'CONNEXION SÉCURISÉE';
   static const String adminInscrits = 'Inscrits';
@@ -128,8 +128,8 @@ class AppStrings {
   static const String tagVip = 'VIP';
 
   // Partage
-  static const String shareText = 'Je viens de rejoindre la formation Cybersécurité de NADIRX TECHNOLOGIE ! Formation du 5 au 9 mai à N\'Djaména. #NADIRXTechnologie #Cybersécurité #Formation #Tchad';
+  static const String shareText = 'Je viens de rejoindre la formation Cybersécurité de NADIRX TECHNOLOGY ! Formation du 5 au 9 mai à N\'Djaména. #NADIRXTechnology #Cybersécurité #Formation #Tchad';
 
   // Footer
-  static const String footer = 'NADIRX TECHNOLOGIE • Formation Cybersécurité';
+  static const String footer = 'NADIRX TECHNOLOGY • Formation Cybersécurité';
 }

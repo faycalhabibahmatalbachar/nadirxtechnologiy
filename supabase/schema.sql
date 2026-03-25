@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS public.inscriptions (
   nationalite           VARCHAR(80) NOT NULL DEFAULT 'Tchadienne',
 
   -- ── CONTACT ───────────────────────────────────────────────
-  email                 VARCHAR(255) NOT NULL UNIQUE,
   telephone             VARCHAR(20) NOT NULL,
   ville                 VARCHAR(100) NOT NULL,
   quartier              VARCHAR(150),
@@ -97,14 +96,15 @@ BEGIN
     ALTER TABLE public.sessions_formation ADD CONSTRAINT sessions_formation_titre_key UNIQUE (titre);
   END IF;
 
-  -- Email UNIQUE sur inscriptions (déjà défini, mais vérifier)
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.table_constraints
-    WHERE table_name = 'inscriptions'
-    AND constraint_type = 'UNIQUE'
-    AND constraint_name LIKE '%email%'
+  -- Nettoyage: suppression du champ email (inscription sans email)
+  ALTER TABLE public.inscriptions DROP CONSTRAINT IF EXISTS inscriptions_email_key;
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'inscriptions'
+    AND column_name = 'email'
   ) THEN
-    ALTER TABLE public.inscriptions ADD CONSTRAINT inscriptions_email_key UNIQUE (email);
+    ALTER TABLE public.inscriptions DROP COLUMN email;
   END IF;
 END
 $$;
@@ -255,7 +255,7 @@ INSERT INTO public.sessions_formation (
     {"nom": "Ing. Abdelhalim Abdoulaye", "specialite": "Ethical Hacking & Pentest"},
     {"nom": "Ing. Faycal Habib Ahmat", "specialite": "Forensics & Sécurité Réseau"}
   ]',
-  '{"whatsapp": "+23568663737", "email": "nadirxtechnology@gmail.com", "telephone": "+23568881226/91912191", "facebook": "https://www.facebook.com/faycalhabibahmat"}',
+  '{"whatsapp": "+23568663737", "telephone": "+23568881226/91912191", "facebook": "https://www.facebook.com/faycalhabibahmat"}',
   25
 ) ON CONFLICT (titre) DO UPDATE SET 
   programme = EXCLUDED.programme,
@@ -268,4 +268,4 @@ INSERT INTO public.sessions_formation (
 -- ============================================================
 -- UPDATE auth.users 
 -- SET raw_app_meta_data = raw_app_meta_data || '{"role": "admin"}'::jsonb
--- WHERE email = 'admin@nadirx.td';
+-- WHERE id = '...';

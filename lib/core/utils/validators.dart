@@ -54,17 +54,6 @@ class Validators {
     return null;
   }
 
-  static String? email(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Email requis';
-    }
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value.trim())) {
-      return 'Email invalide';
-    }
-    return null;
-  }
-
   static String? ville(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Ville requise';

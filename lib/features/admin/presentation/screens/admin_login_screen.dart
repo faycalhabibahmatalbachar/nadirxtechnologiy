@@ -3,13 +3,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/widgets/cyber_background.dart';
 import '../../../../core/widgets/cyber_text_field.dart';
 import '../../../../core/widgets/cyber_button.dart';
+import '../../../../core/utils/local_storage.dart';
 
 class AdminLoginScreen extends StatefulWidget {
   const AdminLoginScreen({super.key});
@@ -19,6 +19,9 @@ class AdminLoginScreen extends StatefulWidget {
 }
 
 class _AdminLoginScreenState extends State<AdminLoginScreen> {
+  static const String _adminEmail = 'faycalhabibahmat';
+  static const String _adminPassword = 'Password235@#!';
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -46,33 +49,20 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     });
 
     try {
-      final response = await Supabase.instance.client.auth.signInWithPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
 
-      if (response.user != null) {
-        // Vérifier si l'utilisateur est admin
-        final isAdmin = response.user!.userMetadata?['role'] == 'admin';
-        
-        if (isAdmin) {
-          if (mounted) {
-            context.go('/admin/dashboard');
-          }
-        } else {
-          await Supabase.instance.client.auth.signOut();
-          setState(() {
-            _errorMessage = 'Accès non autorisé';
-            _isLoading = false;
-          });
-        }
+      if (email == _adminEmail && password == _adminPassword) {
+        await LocalStorage.setAdminLoggedIn(true);
+        if (mounted) context.go('/admin/dashboard');
+        return;
       }
-    } on AuthException catch (e) {
+
       setState(() {
-        _errorMessage = e.message;
+        _errorMessage = 'Accès non autorisé';
         _isLoading = false;
       });
-    } catch (e) {
+    } catch (_) {
       setState(() {
         _errorMessage = 'Erreur de connexion';
         _isLoading = false;
@@ -131,9 +121,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       children: [
                         CyberTextField(
                           label: AppStrings.adminEmail,
-                          prefixIcon: PhosphorIcons.envelopeSimple(),
+                          prefixIcon: PhosphorIcons.user(),
                           controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
+                          keyboardType: TextInputType.text,
                           textInputAction: TextInputAction.next,
                         ),
                         const SizedBox(height: 16),

@@ -32,7 +32,7 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
   String _selectedTag = 'normal';
 
   final List<Map<String, String>> _tagOptions = [
-    {'value': 'normal', 'label': 'Normal'},
+    {'value': 'normal', 'label': '—'},
     {'value': 'prioritaire', 'label': 'Prioritaire'},
     {'value': 'a_rappeler', 'label': 'À rappeler'},
     {'value': 'doublon', 'label': 'Doublon'},
@@ -61,12 +61,6 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
           .eq('id', widget.inscriptionId)
           .single();
 
-      // Marquer comme vu
-      await ref.read(supabaseClientProvider)
-          .from('inscriptions')
-          .update({'admin_viewed': true})
-          .eq('id', widget.inscriptionId);
-
       setState(() {
         _inscription = response;
         _selectedTag = response['tag_admin'] as String? ?? 'normal';
@@ -79,13 +73,26 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
   }
 
   Future<void> _updateTag(String tag) async {
+    final dbValue = tag == 'normal' ? null : tag;
     await ref.read(supabaseClientProvider)
         .from('inscriptions')
-        .update({'tag_admin': tag})
+        .update({'tag_admin': dbValue})
         .eq('id', widget.inscriptionId);
     
     setState(() {
       _selectedTag = tag;
+      _inscription = {...?_inscription, 'tag_admin': dbValue};
+    });
+  }
+
+  Future<void> _setViewed(bool viewed) async {
+    await ref.read(supabaseClientProvider)
+        .from('inscriptions')
+        .update({'admin_viewed': viewed})
+        .eq('id', widget.inscriptionId);
+
+    setState(() {
+      _inscription = {...?_inscription, 'admin_viewed': viewed};
     });
   }
 
@@ -200,20 +207,23 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Photo et identité
+            // Identité + ID
             _buildIdentitySection(),
             const SizedBox(height: 24),
-            // Contact
-            _buildContactSection(),
+            // Photo participant (cadre 4x4)
+            _buildPhotoSection(),
             const SizedBox(height: 24),
-            // Profession
+            // Administration / notes
+            _buildAdminSection(),
+            const SizedBox(height: 24),
+            // Informations personnelles
+            _buildPersonalInfoSection(),
+            const SizedBox(height: 24),
+            // Profil professionnel
             _buildProfessionSection(),
             const SizedBox(height: 24),
-            // Documents
+            // Documents (CV)
             _buildDocumentsSection(),
-            const SizedBox(height: 24),
-            // Admin section
-            _buildAdminSection(),
             const SizedBox(height: 40),
           ],
         ),
@@ -224,32 +234,64 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
   Widget _buildIdentitySection() {
     return CyberCard(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Photo
-          Center(
-            child: GestureDetector(
-              onTap: () => _showFullPhoto(),
-              child: Container(
-                width: 120,
-                height: 120,
+          Text(
+            '${_inscription!['prenom']} ${_inscription!['nom']}',
+            style: GoogleFonts.inter(
+              color: AppColors.textPrimary,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'ID: ${_inscription!['id']}',
+            style: GoogleFonts.shareTechMono(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 300.ms);
+  }
+
+  Widget _buildPhotoSection() {
+    final photoUrl = _inscription!['photo_participant_url'] as String;
+
+    Future<void> download() async {
+      final url = Uri.parse(photoUrl);
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      }
+    }
+
+    return CyberCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('PHOTO PARTICIPANT', PhosphorIcons.image()),
+          const Divider(color: AppColors.border, height: 24),
+          Row(
+            children: [
+              Container(
+                width: 140,
+                height: 140,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.primary, width: 2),
-                  boxShadow: [
-                    BoxShadow(color: AppColors.primaryGlow, blurRadius: 16),
-                  ],
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.5)),
                 ),
-                child: ClipOval(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
                   child: CachedNetworkImage(
-                    imageUrl: _inscription!['photo_participant_url'] as String,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: AppColors.surface,
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primary,
-                          strokeWidth: 2,
-                        ),
+                    imageUrl: photoUrl,
+                    fit: BoxFit.contain, // 4x4 sans couper l'image
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                        strokeWidth: 2,
                       ),
                     ),
                     errorWidget: (context, url, error) => Container(
@@ -263,64 +305,66 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
                   ),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Nom complet
-          Text(
-            '${_inscription!['prenom']} ${_inscription!['nom']}',
-            style: GoogleFonts.inter(
-              color: AppColors.textPrimary,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          // Badge statut
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.primary),
-            ),
-            child: Text(
-              'CONFIRMÉ',
-              style: GoogleFonts.shareTechMono(
-                color: AppColors.primary,
-                fontSize: 11,
-                letterSpacing: 2,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Infos identité
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildInfoBadge(
-                _inscription!['genre'] ?? '-',
-                PhosphorIcons.genderIntersex(),
-              ),
-              const SizedBox(width: 12),
-              _buildInfoBadge(
-                _inscription!['nationalite'] ?? 'Tchadienne',
-                PhosphorIcons.globe(),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextButton.icon(
+                      onPressed: _showFullPhoto,
+                      icon: Icon(PhosphorIcons.eye(), size: 18),
+                      label: const Text('Voir'),
+                    ),
+                    TextButton.icon(
+                      onPressed: download,
+                      icon: Icon(PhosphorIcons.downloadSimple(), size: 18),
+                      label: const Text('Télécharger'),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Né(e) le ${_formatDate(_inscription!['date_naissance'] as String)}',
-            style: GoogleFonts.inter(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-            ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 300.ms, delay: 100.ms);
+  }
+
+  Widget _buildPersonalInfoSection() {
+    return CyberCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('INFORMATIONS PERSONNELLES', PhosphorIcons.user()),
+          const Divider(color: AppColors.border, height: 24),
+          _buildInfoRow(
+            PhosphorIcons.calendar(),
+            'Date de Naissance',
+            _formatDate(_inscription!['date_naissance'] as String),
+          ),
+          _buildInfoRow(
+            PhosphorIcons.genderIntersex(),
+            'Genre',
+            (_inscription!['genre'] as String?) ?? '-',
+          ),
+          _buildInfoRow(
+            PhosphorIcons.phone(),
+            'Téléphone',
+            _inscription!['telephone'] as String,
+          ),
+          _buildInfoRow(
+            PhosphorIcons.mapPin(),
+            'Ville',
+            _inscription!['ville'] as String,
+          ),
+          _buildInfoRow(
+            PhosphorIcons.globe(),
+            'Nationalité',
+            (_inscription!['nationalite'] as String?) ?? 'Tchadienne',
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 300.ms);
+    ).animate().fadeIn(duration: 300.ms, delay: 200.ms);
   }
 
   Widget _buildInfoBadge(String text, PhosphorIconData icon) {
@@ -360,11 +404,7 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
             'Téléphone',
             _inscription!['telephone'] as String,
           ),
-          _buildInfoRow(
-            PhosphorIcons.envelope(),
-            'Email',
-            _inscription!['email'] as String,
-          ),
+          // Email supprimé (inscription sans email)
           _buildInfoRow(
             PhosphorIcons.mapPin(),
             'Ville',
@@ -386,40 +426,17 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('PROFESSION', PhosphorIcons.briefcase()),
+          _buildSectionHeader('PROFIL PROFESSIONNEL', PhosphorIcons.briefcase()),
           const Divider(color: AppColors.border, height: 24),
           _buildInfoRow(
             PhosphorIcons.userFocus(),
             'Situation',
             _formatSituation(_inscription!['situation_actuelle'] as String),
           ),
-          if (_inscription!['domaine_activite'] != null)
-            _buildInfoRow(
-              PhosphorIcons.folders(),
-              'Domaine',
-              _inscription!['domaine_activite'] as String,
-            ),
           _buildInfoRow(
             PhosphorIcons.chartBar(),
-            'Niveau informatique',
+            'Niveau IT',
             _formatNiveau(_inscription!['niveau_informatique'] as String),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Objectif de formation',
-            style: GoogleFonts.inter(
-              color: AppColors.textTertiary,
-              fontSize: 11,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            _inscription!['objectif_formation'] as String,
-            style: GoogleFonts.inter(
-              color: AppColors.textPrimary,
-              fontSize: 14,
-              height: 1.5,
-            ),
           ),
         ],
       ),
@@ -435,28 +452,7 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
         children: [
           _buildSectionHeader('DOCUMENTS', PhosphorIcons.files()),
           const Divider(color: AppColors.border, height: 24),
-          Row(
-            children: [
-              Icon(
-                PhosphorIcons.image(),
-                color: AppColors.primary,
-                size: 18,
-              ),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Text(
-                  'Photo participant',
-                  style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
-                ),
-              ),
-              TextButton(
-                onPressed: _showFullPhoto,
-                child: const Text('Voir'),
-              ),
-            ],
-          ),
           if (cvUrl != null) ...[
-            const SizedBox(height: 8),
             Row(
               children: [
                 Icon(
@@ -482,68 +478,115 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
                 ),
               ],
             ),
-          ],
+          ] else
+            Text(
+              'Aucun CV',
+              style: GoogleFonts.inter(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+              ),
+            ),
         ],
       ),
     ).animate().fadeIn(duration: 300.ms, delay: 300.ms);
   }
 
   Widget _buildAdminSection() {
+    final statut = (_inscription!['statut'] as String?) ?? 'confirme';
+    final statutLower = statut.toLowerCase();
+    final statutLabel = (statutLower == 'confirme' ||
+            statutLower == 'confirmé' ||
+            statutLower == 'confirmee')
+        ? 'Confirmé ✓'
+        : statut;
+
+    final isViewed = _inscription!['admin_viewed'] == true;
+    final rgpdAccepted = _inscription!['consentement_rgpd'] == true;
+
     return CyberCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionHeader('ADMINISTRATION', PhosphorIcons.wrench()),
           const Divider(color: AppColors.border, height: 24),
-          // Tag
+          _buildInfoRow(
+            PhosphorIcons.shieldCheck(),
+            'Statut',
+            statutLabel,
+          ),
+          const SizedBox(height: 8),
           Text(
-            'Tag',
+            'Catégorie',
             style: GoogleFonts.inter(
               color: AppColors.textSecondary,
               fontSize: 13,
             ),
           ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _tagOptions.map((option) {
-              final isSelected = _selectedTag == option['value'];
-              return GestureDetector(
-                onTap: () => _updateTag(option['value']!),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? _getTagColor(option['value']).withOpacity(0.15)
-                        : AppColors.surface,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: isSelected
-                          ? _getTagColor(option['value'])
-                          : AppColors.border,
+          DropdownButtonFormField<String>(
+            value: _selectedTag,
+            items: _tagOptions
+                .map((o) => DropdownMenuItem<String>(
+                      value: o['value'],
+                      child: Text(o['label']!),
+                    ))
+                .toList(),
+            onChanged: (v) {
+              if (v == null) return;
+              _updateTag(v);
+            },
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: AppColors.surface,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: AppColors.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: AppColors.primary),
+              ),
+            ),
+            dropdownColor: AppColors.surface,
+            style: GoogleFonts.inter(color: AppColors.textPrimary),
+            iconEnabledColor: AppColors.textSecondary,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Examiné',
+                      style: GoogleFonts.inter(
+                        color: AppColors.textTertiary,
+                        fontSize: 11,
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    option['label']!,
-                    style: GoogleFonts.inter(
-                      color: isSelected
-                          ? _getTagColor(option['value'])
-                          : AppColors.textPrimary,
-                      fontSize: 12,
+                    const SizedBox(height: 2),
+                    Text(
+                      isViewed ? '✓ Oui' : '✗ Non',
+                      style: GoogleFonts.inter(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              );
-            }).toList(),
+              ),
+              Switch.adaptive(
+                value: isViewed,
+                activeColor: AppColors.primary,
+                onChanged: _setViewed,
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           // Note
           Text(
-            'Note interne',
+            'NOTES INTERNES',
             style: GoogleFonts.inter(
               color: AppColors.textSecondary,
               fontSize: 13,
@@ -558,7 +601,7 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
               fontSize: 14,
             ),
             decoration: InputDecoration(
-              hintText: 'Ajouter une note...',
+              hintText: '(Aucune note)',
               hintStyle: GoogleFonts.inter(
                 color: AppColors.textTertiary,
                 fontSize: 14,
@@ -590,12 +633,28 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
           ),
           const SizedBox(height: 16),
           // Métadonnées
-          Text(
-            'Inscrit le ${_formatDate(_inscription!['created_at'] as String)}',
-            style: GoogleFonts.inter(
-              color: AppColors.textTertiary,
-              fontSize: 11,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Inscrit: ${_formatDate(_inscription!['created_at'] as String)}',
+                  style: GoogleFonts.inter(
+                    color: AppColors.textTertiary,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  'RGPD: ${rgpdAccepted ? '✓ Accepté' : '✗ Refusé'}',
+                  style: GoogleFonts.inter(
+                    color: AppColors.textTertiary,
+                    fontSize: 11,
+                  ),
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
           ),
         ],
       ),

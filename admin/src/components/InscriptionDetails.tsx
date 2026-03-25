@@ -1,7 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Download, MapPin, Mail, Phone, Calendar, Briefcase, Code, FileText, Image, Edit2, Save, Trash2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import {
+  X,
+  Download,
+  Phone,
+  Calendar,
+  MapPin,
+  Briefcase,
+  Code,
+  Edit2,
+  Save,
+  ShieldCheck,
+  Flag,
+} from 'lucide-react';
 import type { Inscription } from '@/lib/supabase';
 import { supabase } from '@/lib/supabase';
 import { format } from 'date-fns';
@@ -13,20 +25,37 @@ interface InscriptionDetailsProps {
   onUpdate?: (inscription: Inscription) => void;
 }
 
-export default function InscriptionDetails({ inscription, onClose, onUpdate }: InscriptionDetailsProps) {
+type Status = 'confirme' | 'en_attente' | 'rejetee';
+
+function formatDate(date: string) {
+  return format(new Date(date), 'dd MMMM yyyy', { locale: fr });
+}
+
+function normalizeUrl(pathOrUrl?: string | null) {
+  if (!pathOrUrl) return null;
+  if (pathOrUrl.startsWith('http')) return pathOrUrl;
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/participants/${pathOrUrl}`;
+}
+
+export default function InscriptionDetails({
+  inscription,
+  onClose,
+  onUpdate,
+}: InscriptionDetailsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [editedData, setEditedData] = useState({
     note_admin: inscription.note_admin || '',
     tag_admin: inscription.tag_admin || '',
-    statut: inscription.statut,
+    statut: inscription.statut as Status,
+    admin_viewed: inscription.admin_viewed ?? false,
   });
 
-  const getImageUrl = (path: string) => {
-    if (!path) return null;
-    if (path.startsWith('http')) return path;
-    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/participant-photos/${path}`;
-  };
+  const photoUrl = useMemo(
+    () => normalizeUrl(inscription.photo_participant_url),
+    [inscription.photo_participant_url],
+  );
+  const cvUrl = useMemo(() => normalizeUrl(inscription.cv_url), [inscription.cv_url]);
 
   const handleDownload = async (url: string | null, filename: string) => {
     if (!url) return;
@@ -44,7 +73,7 @@ export default function InscriptionDetails({ inscription, onClose, onUpdate }: I
 
   const handleUpdate = async () => {
     if (!onUpdate) return;
-    
+
     setIsUpdating(true);
     try {
       const { error } = await supabase
@@ -53,20 +82,17 @@ export default function InscriptionDetails({ inscription, onClose, onUpdate }: I
           note_admin: editedData.note_admin,
           tag_admin: editedData.tag_admin,
           statut: editedData.statut,
-          admin_viewed: true,
-          updated_at: new Date().toISOString(),
+          admin_viewed: editedData.admin_viewed,
         })
         .eq('id', inscription.id);
 
       if (error) throw error;
 
-      const updated = {
+      onUpdate({
         ...inscription,
         ...editedData,
-        admin_viewed: true,
-      };
-      
-      onUpdate(updated);
+        admin_viewed: editedData.admin_viewed,
+      });
       setIsEditing(false);
     } catch (error) {
       console.error('Update error:', error);
@@ -75,10 +101,10 @@ export default function InscriptionDetails({ inscription, onClose, onUpdate }: I
     }
   };
 
-  const StatusSelect = ({ value, onChange }: { value: string; onChange: (v: 'confirme' | 'en_attente' | 'rejetee') => void }) => (
+  const StatusSelect = ({ value, onChange }: { value: Status; onChange: (v: Status) => void }) => (
     <select
       value={value}
-      onChange={(e) => onChange(e.target.value as 'confirme' | 'en_attente' | 'rejetee')}
+      onChange={(e) => onChange(e.target.value as Status)}
       className="px-3 py-2 bg-surface border border-border/30 rounded text-sm font-mono text-white"
     >
       <option value="confirme">Confirmé</option>
@@ -87,91 +113,57 @@ export default function InscriptionDetails({ inscription, onClose, onUpdate }: I
     </select>
   );
 
-  const StatusBadge = ({ status }: { status: string }) => {
-    const colors: Record<string, string> = {
+  const StatusBadge = ({ status }: { status: Status }) => {
+    const colors: Record<Status, string> = {
       confirme: 'bg-primary/20 text-primary border border-primary/30',
       en_attente: 'bg-secondary/20 text-secondary border border-secondary/30',
       rejetee: 'bg-error/20 text-error border border-error/30',
     };
 
-    const labels: Record<string, string> = {
+    const labels: Record<Status, string> = {
       confirme: 'Confirmé ✓',
       en_attente: 'En attente',
       rejetee: 'Rejeté',
     };
 
     return (
-      <span className={`px-4 py-2 rounded text-xs font-bold font-mono ${colors[status] || ''}`}>
-        {labels[status] || status}
+      <span className={`inline-block px-3 py-2 rounded text-xs font-mono font-bold ${colors[status]}`}>
+        {labels[status]}
       </span>
     );
   };
 
-  const formatDate = (date: string) => {
-    return format(new Date(date), 'dd MMMM yyyy', { locale: fr });
-  };
-
-  const photoUrl = getImageUrl(inscription.photo_participant_url);
-
-  // Helper to show/hide sections based on data
-  const hasValue = (value: any) => value && value !== '' && value !== '—';
-  const hasPDF = (value: any) => value && value !== '';
-
-  const InfoRow = ({
-    icon: Icon,
-    label,
-    value,
-  }: {
-    icon: React.ReactNode;
-    label: string;
-    value: string | null | undefined;
-  }) => {
-    if (!hasValue(value)) return null;
-
-    return (
-      <div className="flex items-start gap-3 pb-3 border-b border-border/20 last:border-0">
-        <div className="text-secondary flex-shrink-0 mt-0.5">{Icon}</div>
-        <div className="flex-1">
-          <p className="text-xs text-secondary/70 font-mono mb-0.5">{label}</p>
-          <p className="text-sm text-white font-mono">{value}</p>
-        </div>
-      </div>
-    );
-  };
+  const fullName = `${inscription.prenom} ${inscription.nom}`.trim();
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-surface border border-border/30 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto my-8">
-        {/* Header */}
-        <div className="sticky top-0 bg-surface/95 border-b border-border/30 px-6 py-4 flex items-center justify-between backdrop-blur">
+      <div className="bg-surface border border-border/30 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto my-8">
+        <div className="sticky top-0 bg-surface/95 border-b border-border/30 px-6 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold font-mono text-primary glow-primary">
-              {inscription.prenom} {inscription.nom}
-            </h2>
-            <p className="text-xs text-secondary font-mono mt-1">
-              ID: {inscription.id}
-            </p>
+            <h2 className="text-lg font-bold font-mono text-primary">{fullName}</h2>
+            <p className="text-xs text-secondary font-mono">ID: {inscription.id}</p>
           </div>
+
           <button
             onClick={onClose}
-            className="p-2 hover:bg-error/20 rounded-lg transition text-error"
+            className="p-2 hover:bg-border/20 rounded transition-colors"
+            aria-label="Fermer"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
         <div className="p-6 space-y-4">
-          {/* Photo Section */}
           {photoUrl && (
             <div className="border border-primary/30 rounded-lg p-4 bg-primary/5">
               <h3 className="text-xs font-bold font-mono text-primary mb-3">PHOTO PARTICIPANT</h3>
-              <img
-                src={photoUrl}
-                alt="Photo"
-                className="w-full h-64 object-cover rounded border border-border/30 mb-3"
-              />
+              <div className="w-full flex justify-center mb-3">
+                <div className="w-48 h-48 border border-border/30 rounded bg-surface/30 flex items-center justify-center overflow-hidden">
+                  <img src={photoUrl} alt="Photo" className="w-full h-full object-contain" />
+                </div>
+              </div>
               <button
-                onClick={() => handleDownload(photoUrl, `${inscription.prenom}-${inscription.nom}-photo.jpg`)}
+                onClick={() => handleDownload(photoUrl, `${inscription.prenom}-${inscription.nom}-photo.png`)}
                 className="w-full px-3 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded text-xs font-mono flex items-center justify-center gap-2 transition"
               >
                 <Download className="w-3 h-3" />
@@ -180,15 +172,11 @@ export default function InscriptionDetails({ inscription, onClose, onUpdate }: I
             </div>
           )}
 
-          {/* CV Section */}
-          {hasPDF(inscription.cv_url) && (
+          {cvUrl && (
             <div className="border border-secondary/30 rounded-lg p-4 bg-secondary/5">
               <h3 className="text-xs font-bold font-mono text-secondary mb-3">CURRICULUM VITAE</h3>
               <button
-                onClick={() => handleDownload(
-                  `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/participant-cvs/${inscription.cv_url}`,
-                  `${inscription.prenom}-${inscription.nom}-cv.pdf`
-                )}
+                onClick={() => handleDownload(cvUrl, `${inscription.prenom}-${inscription.nom}-cv.pdf`)}
                 className="w-full px-3 py-2 bg-secondary/20 hover:bg-secondary/30 text-secondary rounded text-xs font-mono flex items-center justify-center gap-2 transition"
               >
                 <Download className="w-3 h-3" />
@@ -197,9 +185,21 @@ export default function InscriptionDetails({ inscription, onClose, onUpdate }: I
             </div>
           )}
 
-          {/* Admin Controls */}
           <div className="border border-border/30 rounded-lg p-4 bg-surface/30">
-            <h3 className="text-xs font-bold font-mono text-primary mb-4">ADMININSTRATION</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-bold font-mono text-primary">ADMINISTRATION</h3>
+              {onUpdate && (
+                <button
+                  onClick={() => (isEditing ? handleUpdate() : setIsEditing(true))}
+                  disabled={isUpdating}
+                  className="inline-flex items-center gap-2 px-3 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded text-xs font-mono text-primary disabled:opacity-50"
+                >
+                  {isEditing ? <Save className="w-3 h-3" /> : <Edit2 className="w-3 h-3" />}
+                  {isEditing ? 'Enregistrer' : 'Modifier'}
+                </button>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="text-xs text-secondary/70 font-mono mb-2 block">Statut</label>
@@ -209,9 +209,10 @@ export default function InscriptionDetails({ inscription, onClose, onUpdate }: I
                     onChange={(v) => setEditedData({ ...editedData, statut: v })}
                   />
                 ) : (
-                  <StatusBadge status={inscription.statut} />
+                  <StatusBadge status={inscription.statut as Status} />
                 )}
               </div>
+
               <div>
                 <label className="text-xs text-secondary/70 font-mono mb-2 block">Catégorie</label>
                 {isEditing ? (
@@ -221,10 +222,10 @@ export default function InscriptionDetails({ inscription, onClose, onUpdate }: I
                     className="w-full px-3 py-2 bg-surface border border-border/30 rounded text-xs font-mono text-white"
                   >
                     <option value="">—</option>
-                    <option value="prioritaire">🔴 Prioritaire</option>
-                    <option value="a_rappeler">🔔 À rappeler</option>
-                    <option value="doublon">⚠ Doublon</option>
-                    <option value="vip">⭐ VIP</option>
+                    <option value="prioritaire">Prioritaire</option>
+                    <option value="a_rappeler">À rappeler</option>
+                    <option value="doublon">Doublon</option>
+                    <option value="vip">VIP</option>
                   </select>
                 ) : (
                   <span className="inline-block px-3 py-2 bg-border/20 text-secondary rounded text-xs font-mono">
@@ -232,109 +233,198 @@ export default function InscriptionDetails({ inscription, onClose, onUpdate }: I
                   </span>
                 )}
               </div>
+
               <div>
                 <label className="text-xs text-secondary/70 font-mono mb-2 block">Examiné</label>
-                <span className={`inline-block px-3 py-2 rounded text-xs font-mono font-bold ${
-                  inscription.admin_viewed
-                    ? 'bg-primary/20 text-primary'
-                    : 'bg-error/20 text-error'
-                }`}>
-                  {inscription.admin_viewed ? '✓ Oui' : '✗ Non'}
-                </span>
+                {isEditing ? (
+                  <label className="inline-flex items-center gap-2 px-3 py-2 bg-surface border border-border/30 rounded text-xs font-mono text-white">
+                    <input
+                      type="checkbox"
+                      checked={editedData.admin_viewed}
+                      onChange={(e) =>
+                        setEditedData({
+                          ...editedData,
+                          admin_viewed: e.target.checked,
+                        })
+                      }
+                    />
+                    {editedData.admin_viewed ? '✓ Oui' : '✗ Non'}
+                  </label>
+                ) : (
+                  <span
+                    className={`inline-block px-3 py-2 rounded text-xs font-mono font-bold ${
+                      inscription.admin_viewed ? 'bg-primary/20 text-primary' : 'bg-error/20 text-error'
+                    }`}
+                  >
+                    {inscription.admin_viewed ? '✓ Oui' : '✗ Non'}
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Notes Admin */}
           <div className="border border-border/30 rounded-lg p-4 bg-surface/30">
-            <label className="text-xs font-bold font-mono text-primary mb-2 block">NOTES INTERNES</label>
+            <h3 className="text-xs font-bold font-mono text-primary mb-4">NOTES INTERNES</h3>
             {isEditing ? (
               <textarea
                 value={editedData.note_admin}
                 onChange={(e) => setEditedData({ ...editedData, note_admin: e.target.value })}
-                className="w-full h-20 px-3 py-2 bg-surface border border-border/30 rounded text-xs font-mono text-white resize-none"
+                className="w-full min-h-24 px-3 py-2 bg-background border border-border/30 rounded text-sm font-mono text-white"
                 placeholder="Ajouter une note..."
               />
             ) : (
-              <p className={`text-xs font-mono leading-relaxed ${inscription.note_admin ? 'text-white' : 'text-secondary/50'}`}>
-                {inscription.note_admin || '(Aucune note)'}
+              <p className="text-sm font-mono text-secondary">
+                {inscription.note_admin?.trim() ? inscription.note_admin : '(Aucune note)'}
               </p>
             )}
           </div>
 
-          {/* Informations Personnelles */}
           <div className="border border-border/30 rounded-lg p-4 bg-surface/30">
             <h3 className="text-xs font-bold font-mono text-primary mb-4">INFORMATIONS PERSONNELLES</h3>
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 font-bold text-lg text-primary glow-primary">
-                {inscription.prenom} {inscription.nom}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="flex items-start gap-3 pb-3 border-b border-border/20">
+                <div className="text-secondary flex-shrink-0 mt-0.5">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-secondary/70 font-mono mb-0.5">Date de naissance</p>
+                  <p className="text-sm text-white font-mono">{formatDate(inscription.date_naissance)}</p>
+                </div>
               </div>
-              <InfoRow icon={<Calendar className="w-4 h-4" />} label="Date de Naissance" value={formatDate(inscription.date_naissance)} />
-              {hasValue(inscription.genre) && <InfoRow icon={<span>♀♂</span>} label="Genre" value={inscription.genre} />}
-              <InfoRow icon={<Phone className="w-4 h-4" />} label="Téléphone" value={inscription.telephone} />
-              <InfoRow icon={<Mail className="w-4 h-4" />} label="Email" value={inscription.email} />
-              <InfoRow icon={<MapPin className="w-4 h-4" />} label="Ville" value={inscription.ville} />
-              {hasValue(inscription.quartier) && <InfoRow icon={<MapPin className="w-4 h-4" />} label="Quartier" value={inscription.quartier} />}
-              {hasValue(inscription.nationalite) && <InfoRow icon={<span>🌍</span>} label="Nationalité" value={inscription.nationalite} />}
+
+              <div className="flex items-start gap-3 pb-3 border-b border-border/20">
+                <div className="text-secondary flex-shrink-0 mt-0.5">
+                  <Phone className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-secondary/70 font-mono mb-0.5">Téléphone</p>
+                  <p className="text-sm text-white font-mono">{inscription.telephone}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 pb-3 border-b border-border/20">
+                <div className="text-secondary flex-shrink-0 mt-0.5">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-secondary/70 font-mono mb-0.5">Ville</p>
+                  <p className="text-sm text-white font-mono">{inscription.ville}</p>
+                  {inscription.quartier && (
+                    <p className="text-xs text-secondary/70 font-mono mt-0.5">{inscription.quartier}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 pb-3 border-b border-border/20">
+                <div className="text-secondary flex-shrink-0 mt-0.5">
+                  <Flag className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-secondary/70 font-mono mb-0.5">Nationalité</p>
+                  <p className="text-sm text-white font-mono">{inscription.nationalite || '—'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 pb-3 border-b border-border/20">
+                <div className="text-secondary flex-shrink-0 mt-0.5">
+                  <span className="w-4 h-4 inline-flex items-center justify-center text-xs">♀♂</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-secondary/70 font-mono mb-0.5">Genre</p>
+                  <p className="text-sm text-white font-mono">{inscription.genre || '—'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 pb-3 border-b border-border/20">
+                <div className="text-secondary flex-shrink-0 mt-0.5">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-secondary/70 font-mono mb-0.5">RGPD</p>
+                  <p className="text-sm text-white font-mono">
+                    {inscription.consentement_rgpd ? '✓ Accepté' : '✗ Non'}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Profil Professionnel */}
           <div className="border border-border/30 rounded-lg p-4 bg-surface/30">
-            <h3 className="text-xs font-bold font-mono text-secondary mb-4">PROFIL PROFESSIONNEL</h3>
-            <div className="space-y-2">
-              {hasValue(inscription.situation_actuelle) && <InfoRow icon={<Briefcase className="w-4 h-4" />} label="Situation" value={inscription.situation_actuelle} />}
-              {hasValue(inscription.domaine_activite) && <InfoRow icon={<Briefcase className="w-4 h-4" />} label="Domaine" value={inscription.domaine_activite} />}
-              {hasValue(inscription.niveau_informatique) && <InfoRow icon={<Code className="w-4 h-4" />} label="Niveau IT" value={inscription.niveau_informatique} />}
-              {hasValue(inscription.comment_connu) && <InfoRow icon={<span>ℹ</span>} label="Vous nous avez connu par" value={inscription.comment_connu} />}
-            </div>
-          </div>
-
-          {/* Metadata */}
-          <div className="border border-border/30 rounded p-3 bg-surface/20 text-xs font-mono space-y-1">
-            <div className="flex justify-between text-secondary/70">
-              <span>Inscrit:</span>
-              <span className="text-white">{formatDate(inscription.created_at)}</span>
-            </div>
-            {inscription.consentement_rgpd && (
-              <div className="flex justify-between text-secondary/70">
-                <span>RGPD:</span>
-                <span className="text-primary">✓ Accepté</span>
+            <h3 className="text-xs font-bold font-mono text-primary mb-4">PROFIL PROFESSIONNEL</h3>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3 pb-3 border-b border-border/20">
+                <div className="text-secondary flex-shrink-0 mt-0.5">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-secondary/70 font-mono mb-0.5">Situation</p>
+                  <p className="text-sm text-white font-mono">
+                    {inscription.situation_actuelle.replace(/_/g, ' ')}
+                  </p>
+                </div>
               </div>
-            )}
+
+              <div className="flex items-start gap-3 pb-3 border-b border-border/20">
+                <div className="text-secondary flex-shrink-0 mt-0.5">
+                  <Code className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-secondary/70 font-mono mb-0.5">Niveau IT</p>
+                  <p className="text-sm text-white font-mono">{inscription.niveau_informatique}</p>
+                </div>
+              </div>
+
+              {inscription.domaine_activite && (
+                <div className="flex items-start gap-3 pb-3 border-b border-border/20">
+                  <div className="text-secondary flex-shrink-0 mt-0.5">
+                    <span className="w-4 h-4 inline-flex items-center justify-center text-xs">💼</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-secondary/70 font-mono mb-0.5">Domaine</p>
+                    <p className="text-sm text-white font-mono">{inscription.domaine_activite}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-start gap-3">
+                <div className="text-secondary flex-shrink-0 mt-0.5">
+                  <span className="w-4 h-4 inline-flex items-center justify-center text-xs">🎯</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-secondary/70 font-mono mb-0.5">Objectif</p>
+                  <p className="text-sm text-white font-mono whitespace-pre-wrap">
+                    {inscription.objectif_formation}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 pt-3 border-t border-border/20">
+                <div className="text-secondary flex-shrink-0 mt-0.5">
+                  <span className="w-4 h-4 inline-flex items-center justify-center text-xs">🗓</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-secondary/70 font-mono mb-0.5">Inscrit</p>
+                  <p className="text-sm text-white font-mono">{formatDate(inscription.created_at)}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 justify-end pt-2">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 bg-surface border border-border/30 hover:border-border text-secondary rounded text-xs font-mono transition"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={handleUpdate}
-                  disabled={isUpdating}
-                  className="px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded text-xs font-mono transition disabled:opacity-50 flex items-center gap-2"
-                >
-                  <Save className="w-3 h-3" />
-                  {isUpdating ? 'Enregistrement...' : 'Enregistrer'}
-                </button>
-              </>
-            ) : (
+          {isEditing && (
+            <div className="flex justify-end">
               <button
-                onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded text-xs font-mono transition flex items-center gap-2"
+                onClick={handleUpdate}
+                disabled={isUpdating}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 hover:bg-primary/30 border border-primary/40 rounded text-primary font-mono text-sm transition disabled:opacity-50"
               >
-                <Edit2 className="w-3 h-3" />
-                Modifier
+                <Save className="w-4 h-4" />
+                {isUpdating ? 'Enregistrement…' : 'Enregistrer'}
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
+

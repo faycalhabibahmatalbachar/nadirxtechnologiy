@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/inscription/domain/entities/inscription_entity.dart';
 import '../../features/inscription/domain/entities/session_formation_entity.dart';
@@ -11,6 +10,7 @@ import '../../features/inscription/presentation/screens/splash_screen.dart';
 import '../../features/admin/presentation/screens/admin_dashboard_screen.dart';
 import '../../features/admin/presentation/screens/admin_login_screen.dart';
 import '../../features/admin/presentation/screens/dossier_detail_screen.dart';
+import '../utils/local_storage.dart';
 
 class AppRouter {
   const AppRouter._();
@@ -55,8 +55,8 @@ class AppRouter {
         path: '/admin/dashboard',
         name: 'admin-dashboard',
         redirect: (context, state) async {
-          final session = Supabase.instance.client.auth.currentSession;
-          if (session == null) return '/admin/login';
+          final ok = await LocalStorage.isAdminLoggedIn();
+          if (!ok) return '/admin/login';
           return null;
         },
         builder: (context, state) => const AdminDashboardScreen(),
@@ -64,6 +64,11 @@ class AppRouter {
       GoRoute(
         path: '/admin/dossier/:id',
         name: 'admin-dossier',
+        redirect: (context, state) async {
+          final ok = await LocalStorage.isAdminLoggedIn();
+          if (!ok) return '/admin/login';
+          return null;
+        },
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return DossierDetailScreen(inscriptionId: id);

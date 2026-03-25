@@ -136,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'NADIRX TECHNOLOGIE',
+                        'NADIRX TECHNOLOGY',
                         style: GoogleFonts.shareTechMono(
                           color: AppColors.textTertiary,
                           fontSize: 10,

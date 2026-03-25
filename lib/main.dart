@@ -50,7 +50,7 @@ class NadirxApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
-      title: 'NADIRX TECHNOLOGIE',
+      title: 'NADIRX TECHNOLOGY',
       theme: AppTheme.cyberTheme,
       routerConfig: AppRouter.router,
       debugShowCheckedModeBanner: false,

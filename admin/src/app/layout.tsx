@@ -2,8 +2,11 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'NADIRX Admin - Inscriptions',
-  description: 'Admin dashboard for NADIRX TECHNOLOGIE inscriptions management',
+  title: 'NADIRX TECHNOLOGY — Admin',
+  description: 'Admin dashboard for NADIRX TECHNOLOGY inscriptions management',
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({
@@ -12,10 +15,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-dark text-white font-sans">
-        {children}
-      </body>
+    <html lang="fr">
+      <body className="bg-dark text-white font-sans">{children}</body>
     </html>
   );
 }

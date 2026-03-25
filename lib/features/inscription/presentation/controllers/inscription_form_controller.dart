@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:universal_io/io.dart';
@@ -148,8 +149,28 @@ class InscriptionFormNotifier extends StateNotifier<InscriptionFormState> {
         maxDelay: 5000,
       );
 
-      if (response.data['success'] != true) {
-        throw Exception(response.data['error'] ?? 'Erreur serveur');
+      Map<String, dynamic>? payload;
+      final data = response.data;
+
+      if (data is Map) {
+        payload = data.map((k, v) => MapEntry(k.toString(), v));
+      } else if (data is String) {
+        try {
+          final decoded = jsonDecode(data);
+          if (decoded is Map<String, dynamic>) payload = decoded;
+        } catch (_) {
+          // ignore
+        }
+      }
+
+      if (payload == null) {
+        throw Exception('Réponse invalide du serveur.');
+      }
+
+      if (payload['success'] != true) {
+        final msg = (payload['error'] ?? 'Erreur serveur').toString().trim();
+        final hint = (payload['hint'] ?? '').toString().trim();
+        throw Exception(hint.isNotEmpty ? '$msg\n$hint' : msg);
       }
 
       // Get session data
@@ -160,13 +181,16 @@ class InscriptionFormNotifier extends StateNotifier<InscriptionFormState> {
           .single();
 
       // Save inscription ID locally
-      final inscriptionId = response.data['inscription_id'] as String;
+      final inscriptionId = (payload['inscription_id'] ?? '').toString();
+      if (inscriptionId.isEmpty) {
+        throw Exception('Réponse serveur incomplète (inscription_id manquant).');
+      }
       await LocalStorage.saveInscriptionId(inscriptionId);
 
       state = state.copyWith(
         status: InscriptionStatus.success,
         progressMessage: 'Confirmation envoyée !',
-        inscription: InscriptionEntity.fromJson(response.data['data']),
+        inscription: InscriptionEntity.fromJson(payload['data']),
         session: SessionFormationEntity.fromJson(sessionData),
       );
     } catch (e) {

@@ -173,6 +173,13 @@ class InscriptionFormNotifier extends StateNotifier<InscriptionFormState> {
         throw Exception(hint.isNotEmpty ? '$msg\n$hint' : msg);
       }
 
+      // Debug: permet de confirmer côté serveur si l'envoi FCM a réussi
+      if (kDebugMode && payload['notification_attempted'] == true) {
+        debugPrint(
+          'FCM notification_sent=${payload['notification_sent'] == true}',
+        );
+      }
+
       // Get session data
       final sessionData = await _ref.read(supabaseClientProvider)
           .from('sessions_formation')

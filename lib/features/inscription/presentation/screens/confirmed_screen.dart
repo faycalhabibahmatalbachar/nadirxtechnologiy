@@ -64,6 +64,9 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
       'Dates: ${widget.session.datesFormatted}',
       'Lieu: ${widget.session.lieu}',
       'Contact: +235 68 88 12 26',
+      if (AppStrings.apkDownloadUrl.trim().isNotEmpty)
+        'Télécharger l\'application: ${AppStrings.apkDownloadUrl}',
+      'Formulaire alternatif (si besoin): ${AppStrings.googleFormUrl}',
       '#NADIRXTechnology #LalekouInformatique',
     ].join('\n');
 

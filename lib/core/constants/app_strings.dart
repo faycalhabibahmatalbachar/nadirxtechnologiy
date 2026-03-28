@@ -130,7 +130,8 @@ class AppStrings {
   static const String shareText = 'Je viens de rejoindre la formation Cybersécurité ! Formation du 10 Avril au 24 Avril 2026 à LALEKOU INFORMATIQUE Abena, près de la clinique la Grâce. #LalekouInformatique contactez 68881226 pour plus d\'infos.';
 
   static const String googleFormUrl = 'https://forms.gle/5E6CQLzVaL345FQJ7';
-  static const String apkDownloadUrl = '';
+  static const String apkDownloadUrl =
+      'https://github.com/faycalhabibahmatalbachar/nadirxtechnologiy/releases/download/v1.0.0/app-release.apk';
 
   // Footer
   static const String footer = 'NADIRX TECHNOLOGY • Formation Cybersécurité';

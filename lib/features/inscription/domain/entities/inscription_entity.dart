@@ -51,7 +51,7 @@ class InscriptionEntity {
     this.adminViewed = false,
   });
 
-  String get nomComplet => '$prenom $nom';
+  String get nomComplet => '$nom $prenom';
   
   String get shortId => id.substring(0, 8).toUpperCase();
 

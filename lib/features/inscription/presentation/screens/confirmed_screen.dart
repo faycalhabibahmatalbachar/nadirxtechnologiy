@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -48,8 +52,52 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
     super.dispose();
   }
 
-  void _share() {
-    Share.share(AppStrings.shareText);
+  Future<void> _share() async {
+    final dossier = widget.inscription.shortId;
+    final fullName = widget.inscription.nomComplet;
+
+    final shareText = [
+      'Inscription confirmée — NADIRX TECHNOLOGY',
+      '$fullName',
+      'N° dossier: $dossier',
+      'Formation: ${widget.session.titre}',
+      'Dates: ${widget.session.datesFormatted}',
+      'Lieu: ${widget.session.lieu}',
+      'Contact: +235 68 88 12 26',
+      '#NADIRXTechnology #LalekouInformatique',
+    ].join('\n');
+
+    try {
+      final qrData = 'NADIRX|DOSSIER:$dossier|ID:${widget.inscription.id}';
+      final painter = QrPainter(
+        data: qrData,
+        version: QrVersions.auto,
+        gapless: true,
+        color: const Color(0xFF000000),
+        emptyColor: const Color(0xFFFFFFFF),
+      );
+      final byteData = await painter.toImageData(
+        768,
+        format: ui.ImageByteFormat.png,
+      );
+
+      final bytes = byteData?.buffer.asUint8List();
+      if (bytes == null) {
+        await Share.share(shareText);
+        return;
+      }
+
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/nadirx_dossier_$dossier.png');
+      await file.writeAsBytes(bytes, flush: true);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: shareText,
+      );
+    } catch (_) {
+      await Share.share(shareText);
+    }
   }
 
   @override
@@ -181,7 +229,7 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
         ).animate().fadeIn(duration: 300.ms, delay: 300.ms),
         const SizedBox(height: 4),
         Text(
-          '${widget.inscription.prenom} !',
+          '${widget.inscription.nomComplet} !',
           style: GoogleFonts.inter(
             color: AppColors.textPrimary,
             fontSize: 32,

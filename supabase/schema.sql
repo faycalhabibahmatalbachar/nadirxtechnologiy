@@ -174,81 +174,12 @@ INSERT INTO public.sessions_formation (
   '[
     {
       "jour": 1,
-      "titre": "Jour 1 : Cryptographie et Chiffrement",
+      "titre": "Modules 1 à 4",
       "modules": [
-        {
-          "num": 1,
-          "titre": "Cryptographie et Chiffrement",
-          "description": "Principes fondamentaux de la cryptographie, algorithmes de chiffrement (AES, RSA), gestion des clés, signatures numériques et certificats SSL/TLS",
-          "duree": "8 heures",
-          "objectifs": [
-            "Comprendre les concepts de cryptographie symétrique et asymétrique",
-            "Maîtriser les algorithmes de chiffrement modernes",
-            "Implémenter la sécurité des communications"
-          ]
-        }
-      ]
-    },
-    {
-      "jour": 2,
-      "titre": "Jour 2 : Risques IoT (Caméras, Objets Connectés)",
-      "modules": [
-        {
-          "num": 2,
-          "titre": "Risques IoT et Objets Connectés",
-          "description": "Sécurité des dispositifs IoT, risques des caméras connectées, protocoles réseau non sécurisés, simulations sur les objets connectés (cameras, capteurs)",
-          "duree": "8 heures",
-          "objectifs": [
-            "Identifier les vulnérabilités dans les dispositifs IoT",
-            "Sécuriser les caméras et capteurs connectés",
-            "Prévenir les attaques sur les réseaux IoT"
-          ]
-        }
-      ]
-    },
-    {
-      "jour": 3,
-      "titre": "Jour 3 : Sécurité des Systèmes",
-      "modules": [
-        {
-          "num": 3,
-          "titre": "Sécurité des Systèmes",
-          "description": "Durcissement des systèmes d''exploitation (Windows, Linux), gestion des accès (IAM), pare-feu, VPN, audits de sécurité et conformité (ISO 27001)",
-          "duree": "8 heures",
-          "objectifs": [
-            "Configurer des systèmes sécurisés",
-            "Implémenter des contrôles d''accès robustes",
-            "Audit et conformité de sécurité"
-          ]
-        }
-      ]
-    },
-    {
-      "jour": 4,
-      "titre": "Jour 4 : Détection & Élimination Malwares",
-      "modules": [
-        {
-          "num": 4,
-          "titre": "Détection & Élimination Malwares",
-          "description": "Types de malwares (virus, trojans, ransomware), sandbox analysis, incident response, techniques de détection avancées, récupération après infection",
-          "duree": "8 heures",
-          "objectifs": [
-            "Détecter et analyser les malwares",
-            "Répondre aux incidents de sécurité",
-            "Éradiquer les menaces et restaurer les systèmes"
-          ]
-        }
-      ]
-    },
-    {
-      "jour": 5,
-      "titre": "Jour 5 : Practiques Finales & Certifications",
-      "modules": [
-        {
-          "titre": "Travaux Pratiques Avancés",
-          "description": "Simulations d''attaques, defense labs, CTF (Capture The Flag), tests de pénétration simulés, préparation certifications (CEH, OSCP)",
-          "duree": "8 heures"
-        }
+        "Vulnérabilités courantes des réseaux sans fil",
+        "Panorama des objets connectés (caméras, capteurs, dispositifs domestiques)",
+        "Gestion des accès et des privilèges",
+        "Détection & élimination de malwares"
       ]
     }
   ]',

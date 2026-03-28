@@ -138,7 +138,7 @@ class _SplashScreenState extends State<SplashScreen>
             ),
             // Footer (marque uniquement)
             Positioned(
-              bottom: 40,
+              bottom: 80,
               left: 0,
               right: 0,
               child: Row(

@@ -70,7 +70,7 @@ class _MonEspaceScreenState extends ConsumerState<MonEspaceScreen> {
   }
 
   Future<void> _openWhatsapp() async {
-    final url = Uri.parse('https://wa.me/23568663737');
+    final url = Uri.parse('https://wa.me/23568881226');
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     }
@@ -184,9 +184,6 @@ class _MonEspaceScreenState extends ConsumerState<MonEspaceScreen> {
             const SizedBox(height: 24),
             // Programme
             if (_session != null) _buildProgrammeSection(),
-            const SizedBox(height: 24),
-            // Matériel requis
-            _buildMaterielCard(),
             const SizedBox(height: 24),
             // Contact
             _buildContactSection(),
@@ -372,127 +369,60 @@ class _MonEspaceScreenState extends ConsumerState<MonEspaceScreen> {
   Widget _buildProgrammeSection() {
     if (_session!.programme.isEmpty) return const SizedBox.shrink();
 
+    final modules = <String>[];
+    for (final j in _session!.programme) {
+      modules.addAll(j.modules);
+    }
+    final uniqueModules = modules.toSet().toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionTitle(AppStrings.monEspaceProgramme),
         const SizedBox(height: 12),
-        ...List.generate(_session!.programme.length, (index) {
-          final jour = _session!.programme[index];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Theme(
-              data: Theme.of(context).copyWith(
-                dividerColor: Colors.transparent,
+        CyberCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Modules 1 à 4',
+                style: GoogleFonts.shareTechMono(
+                  color: AppColors.primary,
+                  fontSize: 12,
+                  letterSpacing: 1,
+                ),
               ),
-              child: ExpansionTile(
-                tilePadding: const EdgeInsets.symmetric(horizontal: 12),
-                leading: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppColors.primary),
-                  ),
-                  child: Center(
-                    child: Text(
-                      'J${jour.jour}',
-                      style: GoogleFonts.shareTechMono(
-                        color: AppColors.primary,
-                        fontSize: 12,
+              const Divider(color: AppColors.border, height: 20),
+              ...uniqueModules.map((m) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        PhosphorIcons.faders(),
+                        color: AppColors.secondary,
+                        size: 14,
                       ),
-                    ),
-                  ),
-                ),
-                title: Text(
-                  jour.titre,
-                  style: GoogleFonts.inter(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: jour.modules.map((m) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                PhosphorIcons.faders(),
-                                color: AppColors.secondary,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  m,
-                                  style: GoogleFonts.inter(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                            ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          m,
+                          style: GoogleFonts.inter(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
                           ),
-                        );
-                      }).toList(),
-                    ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          );
-        }),
+                );
+              }),
+            ],
+          ),
+        ),
       ],
     ).animate().fadeIn(duration: 300.ms, delay: 300.ms);
-  }
-
-  Widget _buildMaterielCard() {
-    return CyberCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(AppStrings.monEspaceMateriel, PhosphorIcons.backpack()),
-          const Divider(color: AppColors.border, height: 24),
-          _buildMaterielItem(AppStrings.materielOrdi, PhosphorIcons.desktopTower()),
-          _buildMaterielItem(AppStrings.materielNotes, PhosphorIcons.notePencil()),
-          _buildMaterielItem(AppStrings.materielId, PhosphorIcons.identificationCard()),
-        ],
-      ),
-    ).animate().fadeIn(duration: 300.ms, delay: 400.ms);
-  }
-
-  Widget _buildMaterielItem(String text, PhosphorIconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.secondary, size: 18),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.inter(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildContactSection() {
@@ -536,9 +466,19 @@ class _MonEspaceScreenState extends ConsumerState<MonEspaceScreen> {
     ).animate().fadeIn(duration: 300.ms, delay: 500.ms);
   }
 
-  Widget _buildContactButton(String label, PhosphorIconData icon, VoidCallback onTap) {
+  Widget _buildContactButton(
+    String label,
+    PhosphorIconData icon,
+    Future<void> Function() onTap,
+  ) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () async {
+        try {
+          await onTap();
+        } catch (_) {
+          // ignore
+        }
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(

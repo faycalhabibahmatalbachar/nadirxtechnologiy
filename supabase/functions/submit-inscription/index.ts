@@ -7,6 +7,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const FCM_KEY = Deno.env.get('FCM_SERVER_KEY') || '';
+const FCM_SERVICE_ACCOUNT_JSON = Deno.env.get('FCM_SERVICE_ACCOUNT_JSON') || '';
 
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -77,6 +78,138 @@ function isNetworkTlsError(message: unknown, details: unknown): boolean {
     text.includes('timed out') ||
     text.includes('timeout')
   );
+}
+
+function base64UrlEncode(input: Uint8Array): string {
+  let str = '';
+  for (let i = 0; i < input.length; i++) str += String.fromCharCode(input[i]);
+  const b64 = btoa(str);
+  return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+function textToUint8(text: string): Uint8Array {
+  return new TextEncoder().encode(text);
+}
+
+function pemToArrayBuffer(pem: string): ArrayBuffer {
+  const cleaned = pem
+    .replace(/-----BEGIN [^-]+-----/g, '')
+    .replace(/-----END [^-]+-----/g, '')
+    .replace(/\s+/g, '');
+  const raw = atob(cleaned);
+  const bytes = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+  return bytes.buffer;
+}
+
+async function getFcmAccessToken(serviceAccountJson: string): Promise<{
+  accessToken: string;
+  projectId: string;
+}> {
+  const sa = JSON.parse(serviceAccountJson);
+  const clientEmail = String(sa.client_email || '');
+  const privateKey = String(sa.private_key || '');
+  const projectId = String(sa.project_id || '');
+  if (!clientEmail || !privateKey || !projectId) {
+    throw new Error('FCM service account JSON incomplet (client_email/private_key/project_id)');
+  }
+
+  const header = base64UrlEncode(textToUint8(JSON.stringify({ alg: 'RS256', typ: 'JWT' })));
+  const iat = Math.floor(Date.now() / 1000);
+  const exp = iat + 60 * 50;
+  const payload = base64UrlEncode(
+    textToUint8(
+      JSON.stringify({
+        iss: clientEmail,
+        scope: 'https://www.googleapis.com/auth/firebase.messaging',
+        aud: 'https://oauth2.googleapis.com/token',
+        iat,
+        exp,
+      }),
+    ),
+  );
+
+  const signingInput = `${header}.${payload}`;
+
+  const key = await crypto.subtle.importKey(
+    'pkcs8',
+    pemToArrayBuffer(privateKey),
+    {
+      name: 'RSASSA-PKCS1-v1_5',
+      hash: 'SHA-256',
+    },
+    false,
+    ['sign'],
+  );
+
+  const signature = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5',
+    key,
+    textToUint8(signingInput),
+  );
+  const jwt = `${signingInput}.${base64UrlEncode(new Uint8Array(signature))}`;
+
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion: jwt,
+    }),
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(`OAuth token error ${res.status}: ${text}`);
+  }
+  const json = JSON.parse(text);
+  const accessToken = String(json.access_token || '');
+  if (!accessToken) throw new Error('OAuth token response missing access_token');
+  return { accessToken, projectId };
+}
+
+async function sendFcmHttpV1(params: {
+  serviceAccountJson: string;
+  token: string;
+  title: string;
+  body: string;
+  imageUrl?: string;
+  data?: Record<string, string>;
+}): Promise<boolean> {
+  const { accessToken, projectId } = await getFcmAccessToken(params.serviceAccountJson);
+  const url = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
+
+  const message: any = {
+    token: params.token,
+    notification: {
+      title: params.title,
+      body: params.body,
+    },
+    data: params.data ?? {},
+    android: {
+      priority: 'HIGH',
+      notification: {
+        channel_id: 'nadirx_channel',
+        color: '#00FF88',
+        icon: 'ic_notification',
+        image: params.imageUrl || undefined,
+      },
+    },
+  };
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ message }),
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    console.error('FCM v1 response not ok:', res.status, txt);
+  }
+  return res.ok;
 }
 
 serve(async (req: Request) => {
@@ -247,47 +380,76 @@ serve(async (req: Request) => {
     let notification_attempted = false;
     let notification_sent = false;
 
-    if (inscription?.fcm_token && FCM_KEY) {
+    if (inscription?.fcm_token && (FCM_SERVICE_ACCOUNT_JSON || FCM_KEY)) {
       notification_attempted = true;
       try {
-        const fullName = `${inscription.prenom} ${inscription.nom}`;
-        const res = await fetch('https://fcm.googleapis.com/fcm/send', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `key=${FCM_KEY}`,
-          },
-          body: JSON.stringify({
-            to: inscription.fcm_token,
-            notification: {
-              title: `Félicitations ${fullName} !`,
-              body: 'Votre inscription est confirmée. Rendez-vous chez LALEKOU INFORMATIQUE.',
-              sound: 'default',
-              image: inscription.photo_participant_url || undefined,
-            },
+        const fullName = `${inscription.nom} ${inscription.prenom}`;
+        const title = `Félicitations ${fullName} !`;
+        const bodyText =
+          'Votre inscription est confirmée. Rendez-vous chez LALEKOU INFORMATIQUE.';
+
+        if (FCM_SERVICE_ACCOUNT_JSON) {
+          notification_sent = await sendFcmHttpV1({
+            serviceAccountJson: FCM_SERVICE_ACCOUNT_JSON,
+            token: inscription.fcm_token,
+            title,
+            body: bodyText,
+            imageUrl: inscription.photo_participant_url || undefined,
             data: {
               type: 'bienvenue',
               inscription_id: inscription.id,
               full_name: fullName,
+              nom: String(inscription.nom ?? ''),
+              prenom: String(inscription.prenom ?? ''),
+              telephone: String(inscription.telephone ?? ''),
+              ville: String(inscription.ville ?? ''),
               photo_url: inscription.photo_participant_url || '',
               click_action: 'FLUTTER_NOTIFICATION_CLICK',
             },
-            android: {
-              priority: 'high',
+          });
+        } else {
+          const res = await fetch('https://fcm.googleapis.com/fcm/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `key=${FCM_KEY}`,
+            },
+            body: JSON.stringify({
+              to: inscription.fcm_token,
               notification: {
-                channel_id: 'nadirx_channel',
-                color: '#00FF88',
-                icon: 'ic_notification',
+                title,
+                body: bodyText,
+                sound: 'default',
                 image: inscription.photo_participant_url || undefined,
               },
-            },
-          }),
-        });
+              data: {
+                type: 'bienvenue',
+                inscription_id: inscription.id,
+                full_name: fullName,
+                nom: String(inscription.nom ?? ''),
+                prenom: String(inscription.prenom ?? ''),
+                telephone: String(inscription.telephone ?? ''),
+                ville: String(inscription.ville ?? ''),
+                photo_url: inscription.photo_participant_url || '',
+                click_action: 'FLUTTER_NOTIFICATION_CLICK',
+              },
+              android: {
+                priority: 'high',
+                notification: {
+                  channel_id: 'nadirx_channel',
+                  color: '#00FF88',
+                  icon: 'ic_notification',
+                  image: inscription.photo_participant_url || undefined,
+                },
+              },
+            }),
+          });
 
-        notification_sent = res.ok;
-        if (!res.ok) {
-          const text = await res.text().catch(() => '');
-          console.error('FCM response not ok:', res.status, text);
+          notification_sent = res.ok;
+          if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            console.error('FCM response not ok:', res.status, text);
+          }
         }
       } catch (fcmError) {
         console.error('FCM error:', fcmError);
@@ -295,8 +457,8 @@ serve(async (req: Request) => {
     } else {
       if (!inscription?.fcm_token) {
         console.log('FCM skipped: no fcm_token provided');
-      } else if (!FCM_KEY) {
-        console.error('FCM skipped: missing FCM_SERVER_KEY env var');
+      } else if (!FCM_SERVICE_ACCOUNT_JSON && !FCM_KEY) {
+        console.error('FCM skipped: missing FCM_SERVICE_ACCOUNT_JSON and FCM_SERVER_KEY');
       }
     }
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../shared/providers/fcm_provider.dart';
@@ -28,6 +29,16 @@ Future<void> _runBootstrap() async {
 
   try {
     await initializeNotifications();
+    final granted = await requestPushPermissionIfNeeded();
+    await registerFcmForegroundHandler();
+
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      debugPrint('FCM permission granted: $granted');
+      debugPrint('FCM token: ${token ?? ''}');
+    } catch (e) {
+      debugPrint('FCM token error: $e');
+    }
   } catch (e) {
     debugPrint('Notifications locales: $e');
   }

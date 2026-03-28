@@ -1,6 +1,7 @@
 import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,7 +36,6 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
   final _objectifController = TextEditingController();
 
   DateTime? _dateNaissance;
-  String? _genre;
   String? _ville;
   String _niveauInformatique = 'debutant';
   String _situationActuelle = 'etudiant';
@@ -51,6 +51,12 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
     _domaineActiviteController.dispose();
     _objectifController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openGoogleFormExternal() async {
+    final uri = Uri.tryParse(AppStrings.googleFormUrl);
+    if (uri == null) return;
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   void _submitForm() {
@@ -86,7 +92,6 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
       ..prenom = _prenomController.text.trim()
       ..nom = _nomController.text.trim()
       ..dateNaissance = _dateNaissance
-      ..genre = _genre
       ..telephone = '+235${_telephoneController.text.replaceAll(' ', '')}'
       ..ville = _ville!.trim()
       ..quartier = _quartierController.text.trim()
@@ -117,7 +122,13 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
         });
       } else if (next.status == InscriptionStatus.error) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.errorMessage ?? 'Erreur')),
+          SnackBar(
+            content: Text(next.errorMessage ?? 'Erreur'),
+            action: SnackBarAction(
+              label: 'Ouvrir Google Form',
+              onPressed: _openGoogleFormExternal,
+            ),
+          ),
         );
       }
     });
@@ -342,11 +353,11 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
           children: [
             Expanded(
               child: CyberTextField(
-                label: AppStrings.labelPrenom,
-                hint: AppStrings.hintPrenom,
-                prefixIcon: PhosphorIcons.userCircle(),
-                controller: _prenomController,
-                validator: Validators.prenom,
+                label: AppStrings.labelNom,
+                hint: AppStrings.hintNom,
+                prefixIcon: PhosphorIcons.identificationCard(),
+                controller: _nomController,
+                validator: Validators.nom,
                 inputFormatters: [NameInputFormatter()],
                 textInputAction: TextInputAction.next,
               ),
@@ -354,11 +365,11 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: CyberTextField(
-                label: AppStrings.labelNom,
-                hint: AppStrings.hintNom,
-                prefixIcon: PhosphorIcons.identificationCard(),
-                controller: _nomController,
-                validator: Validators.nom,
+                label: AppStrings.labelPrenom,
+                hint: AppStrings.hintPrenom,
+                prefixIcon: PhosphorIcons.userCircle(),
+                controller: _prenomController,
+                validator: Validators.prenom,
                 inputFormatters: [NameInputFormatter()],
                 textInputAction: TextInputAction.next,
               ),
@@ -378,67 +389,7 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
             });
           },
         ),
-        const SizedBox(height: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              AppStrings.labelGenre,
-              style: GoogleFonts.inter(
-                color: AppColors.textSecondary,
-                fontSize: 13,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceVariant,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.border, width: 0.5),
-              ),
-              child: Row(
-                children: [
-                  _buildGenreChip(AppStrings.genreHomme, 'homme'),
-                  _buildGenreChip(AppStrings.genreFemme, 'femme'),
-                  _buildGenreChip(AppStrings.genreAutre, 'autre'),
-                ],
-              ),
-            ),
-          ],
-        ),
       ],
-    );
-  }
-
-  Widget _buildGenreChip(String label, String value) {
-    final isSelected = _genre == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _genre = value;
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            label,
-            style: GoogleFonts.inter(
-              color: isSelected ? AppColors.background : AppColors.textPrimary,
-              fontSize: 13,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
     );
   }
 

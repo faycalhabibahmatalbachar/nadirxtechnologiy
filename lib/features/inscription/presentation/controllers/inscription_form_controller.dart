@@ -17,7 +17,6 @@ class InscriptionFormData {
   String prenom = '';
   String nom = '';
   DateTime? dateNaissance;
-  String? genre;
   String nationalite = 'Tchadienne';
   String telephone = '';
   String ville = '';
@@ -43,7 +42,6 @@ class InscriptionFormData {
       'prenom': prenom,
       'nom': nom,
       'date_naissance': dateNaissance?.toIso8601String().split('T')[0],
-      'genre': genre,
       'nationalite': nationalite,
       'telephone': telephone,
       'ville': ville,

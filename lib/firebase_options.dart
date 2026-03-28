@@ -28,11 +28,11 @@ class DefaultFirebaseOptions {
   /// Configuration Firebase pour Android.
   /// Remplacez les valeurs par celles de votre projet Firebase Console.
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_ANDROID_API_KEY',
-    appId: 'YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyA5DfGP-BeV9HSSb-86NkbClLVvVbuR-HE',
+    appId: '1:595067256632:android:f0b96ea038ab2cd4dc0bcd',
+    messagingSenderId: '595067256632',
+    projectId: 'moovmoney-7138e',
+    storageBucket: 'moovmoney-7138e.firebasestorage.app',
   );
 
   /// Configuration Firebase pour iOS.

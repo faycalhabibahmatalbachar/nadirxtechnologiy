@@ -24,7 +24,7 @@ class AppStrings {
 
   // Labels champs
   static const String labelPrenom = 'Prénom';
-  static const String labelNom = 'Nom';
+  static const String labelNom = "Nom d'abord";
   static const String labelDateNaissance = 'Date de naissance';
   static const String labelGenre = 'Genre';
   static const String labelTelephone = 'Téléphone';
@@ -34,7 +34,7 @@ class AppStrings {
 
   // Hints
   static const String hintPrenom = 'Entrez votre prénom';
-  static const String hintNom = 'Entrez votre nom';
+  static const String hintNom = "Entrez votre nom d'abord";
   static const String hintDateNaissance = 'Sélectionnez votre date de naissance';
   static const String hintTelephone = '00 00 00 00';
   static const String hintVille = 'Sélectionnez votre ville';
@@ -128,6 +128,9 @@ class AppStrings {
 
   // Partage
   static const String shareText = 'Je viens de rejoindre la formation Cybersécurité ! Formation du 10 Avril au 24 Avril 2026 à LALEKOU INFORMATIQUE Abena, près de la clinique la Grâce. #LalekouInformatique contactez 68881226 pour plus d\'infos.';
+
+  static const String googleFormUrl = 'https://forms.gle/5E6CQLzVaL345FQJ7';
+  static const String apkDownloadUrl = '';
 
   // Footer
   static const String footer = 'NADIRX TECHNOLOGY • Formation Cybersécurité';

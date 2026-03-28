@@ -1,21 +1,40 @@
 {
   "project_info": {
-    "project_number": "1025378881898",
-    "project_id": "chadconnect-217a8",
-    "storage_bucket": "chadconnect-217a8.firebasestorage.app"
+    "project_number": "595067256632",
+    "project_id": "moovmoney-7138e",
+    "storage_bucket": "moovmoney-7138e.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1025378881898:android:16c07e506e0a9f1b615513",
+        "mobilesdk_app_id": "1:595067256632:android:f0b96ea038ab2cd4dc0bcd",
         "android_client_info": {
-          "package_name": "com.chadconnect.chadconnect"
+          "package_name": "com.nadirx.nadirxTechnologie"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBKLu5-31HjgIxgzz5q3xjlIFlK33nf97c"
+          "current_key": "AIzaSyA5DfGP-BeV9HSSb-86NkbClLVvVbuR-HE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:595067256632:android:25f2afc6c3b33ff2dc0bcd",
+        "android_client_info": {
+          "package_name": "td.moov.moov_tracker_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5DfGP-BeV9HSSb-86NkbClLVvVbuR-HE"
         }
       ],
       "services": {

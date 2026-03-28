@@ -1,4 +1,4 @@
-package com.chadconnect.chadconnect
+package com.nadirx.nadirxTechnologie
 
 import io.flutter.embedding.android.FlutterActivity
 

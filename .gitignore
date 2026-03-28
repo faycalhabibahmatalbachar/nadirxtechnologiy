@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+tmp_supabase_secrets.env
+release_crash_log.txt
+crash_filtered.txt

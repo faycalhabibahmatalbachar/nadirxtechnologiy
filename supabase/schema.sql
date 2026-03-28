@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS public.inscriptions (
   domaine_activite      VARCHAR(200),
   niveau_informatique   VARCHAR(20) NOT NULL,
   -- Valeurs : 'debutant' | 'intermediaire' | 'avance'
+  possede_ordinateur    BOOLEAN NOT NULL,
   objectif_formation    TEXT NOT NULL,
 
   -- ── PHOTO DU PARTICIPANT ──────────────────────────────────
@@ -165,10 +166,10 @@ INSERT INTO public.sessions_formation (
 ) VALUES (
   'Formation Cybersécurité — Fondamentaux & Pratique',
   'Ethical Hacking, Forensics & Sécurité des Réseaux',
-  '2026-04-06',
-  '2026-04-20',
-  '08h00 – 11h00',
-  'NADIRX TECHNOLOGIE, N''Djaména',
+  '2026-04-10',
+  '2026-04-24',
+  'SESSION: 8H-11H et 15H-18H',
+  'LALEKOU INFORMATIQUE Abena, près de la clinique la Grâce',
   'Quartier Khazala, Rond Point 10 Octobre, N''Djaména, Tchad',
   '[
     {

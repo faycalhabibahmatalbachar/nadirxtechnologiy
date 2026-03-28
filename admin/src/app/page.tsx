@@ -69,13 +69,14 @@ export default function Dashboard() {
 
   const handleExport = () => {
     const csv = [
-      ['ID', 'Prénom', 'Nom', 'Téléphone', 'Ville', 'Statut', 'Date'],
+      ['ID', 'Prénom', 'Nom', 'Téléphone', 'Ville', 'Ordinateur', 'Statut', 'Date'],
       ...filteredInscriptions.map(i => [
         i.id,
         i.prenom,
         i.nom,
         i.telephone,
         i.ville,
+        i.possede_ordinateur ? 'Oui' : 'Non',
         i.statut,
         new Date(i.created_at).toLocaleDateString('fr-FR'),
       ]),

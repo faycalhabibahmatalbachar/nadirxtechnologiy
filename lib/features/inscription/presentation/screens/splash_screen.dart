@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../../core/app_bootstrap.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
-import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/utils/local_storage.dart';
 import '../../../../core/widgets/cyber_background.dart';
 import '../../../../core/widgets/nadirx_logo.dart';
@@ -56,12 +56,18 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _navigateAfterDelay() async {
-    await Future.delayed(const Duration(seconds: 2));  // Réduit de 9s à 2s ⚡
+    // Attendre au minimum 2s (UX) et la fin du bootstrap (Supabase + notifications).
+    await Future.wait<void>([
+      Future<void>.delayed(const Duration(seconds: 2)),
+      bootstrapAppServices(),
+    ]);
 
     if (!mounted) return;
 
     // Vérifier si l'utilisateur a déjà une inscription
     final hasInscription = await LocalStorage.hasInscriptionId();
+
+    if (!mounted) return;
 
     if (hasInscription) {
       context.go('/mon-espace');
@@ -116,41 +122,40 @@ class _SplashScreenState extends State<SplashScreen>
                     progress: _progress,
                     message: '',
                   ),
+                  const SizedBox(height: 32),
+                  Text(
+                    '+23568881226 — 91912191',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.shareTechMono(
+                      color: AppColors.primary.withOpacity(0.85),
+                      fontSize: 16,
+                      height: 1.35,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
                 ],
               ),
             ),
-            // Footer
+            // Footer (marque uniquement)
             Positioned(
               bottom: 40,
               left: 0,
               right: 0,
-              child: Column(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        PhosphorIcons.shieldCheck(),
-                        color: AppColors.primary.withOpacity(0.5),
-                        size: 16,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'NADIRX TECHNOLOGY',
-                        style: GoogleFonts.shareTechMono(
-                          color: AppColors.textTertiary,
-                          fontSize: 10,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                    ],
+                  Icon(
+                    PhosphorIcons.shieldCheck(),
+                    color: AppColors.primary.withOpacity(0.5),
+                    size: 16,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(width: 8),
                   Text(
-                    '+23568881226 - 91912191',
-                    style: GoogleFonts.inter(
+                    'NADIRX TECHNOLOGY',
+                    style: GoogleFonts.shareTechMono(
                       color: AppColors.textTertiary,
                       fontSize: 10,
+                      letterSpacing: 2,
                     ),
                   ),
                 ],

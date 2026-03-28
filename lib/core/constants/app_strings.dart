@@ -67,9 +67,8 @@ class AppStrings {
   // Confirmation
   static const String confirmedTitle = '> INSCRIPTION CONFIRMÉE';
   static const String confirmedFelicitations = 'Félicitations,';
-  static const String confirmedPlace = 'Votre place est réservée chez\nNADIRX TECHNOLOGY.';
+  static const String confirmedPlace = 'Votre place est réservée chez\nLALEKOU INFORMATIQUE.';
   static const String confirmedParticipant = '[ PARTICIPANT CONFIRMÉ ]';
-  static const String confirmedNotif = 'Une notification de confirmation a été envoyée sur votre téléphone.';
   static const String confirmedDossier = 'N° DOSSIER :';
 
   // Formation
@@ -78,7 +77,7 @@ class AppStrings {
   static const String formationHoraire = '08h00 – 17h30 chaque jour';
   static const String formationLieu = 'NADIRX TECHNOLOGY, N\'Djaména';
   static const String formationPromotion = 'Mai 2026 • 25 participants max';
-  static const String formationAttestation = 'Délivrée par NADIRX TECHNOLOGY';
+  static const String formationAttestation = 'Délivrée par LALEKOU INFORMATIQUE';
 
   // Mon Espace
   static const String monEspaceTitle = 'MON ESPACE';
@@ -128,7 +127,7 @@ class AppStrings {
   static const String tagVip = 'VIP';
 
   // Partage
-  static const String shareText = 'Je viens de rejoindre la formation Cybersécurité de NADIRX TECHNOLOGY ! Formation du 5 au 9 mai à N\'Djaména. #NADIRXTechnology #Cybersécurité #Formation #Tchad';
+  static const String shareText = 'Je viens de rejoindre la formation Cybersécurité ! Formation du 10 Avril au 24 Avril 2026 à LALEKOU INFORMATIQUE Abena, près de la clinique la Grâce. #LalekouInformatique contactez 68881226 pour plus d\'infos.';
 
   // Footer
   static const String footer = 'NADIRX TECHNOLOGY • Formation Cybersécurité';

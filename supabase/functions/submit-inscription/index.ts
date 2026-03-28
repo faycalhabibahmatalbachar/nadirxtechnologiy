@@ -27,6 +27,7 @@ type InscriptionBody = {
   situation_actuelle?: string;
   domaine_activite?: string | null;
   niveau_informatique?: string;
+  possede_ordinateur?: boolean | null;
   objectif_formation?: string;
   photo_participant_url?: string;
   cv_url?: string | null;
@@ -66,7 +67,19 @@ function inferNotNullField(message: unknown): string | null {
   return match?.[1] ?? null;
 }
 
-serve(async (req) => {
+function isNetworkTlsError(message: unknown, details: unknown): boolean {
+  const text = `${message ?? ''}\n${details ?? ''}`.toLowerCase();
+  return (
+    text.includes('tls handshake eof') ||
+    text.includes('client error (connect)') ||
+    text.includes('connection refused') ||
+    text.includes('network') ||
+    text.includes('timed out') ||
+    text.includes('timeout')
+  );
+}
+
+serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
       headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
@@ -79,7 +92,6 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
     console.log('Données reçues:', body);
-    console.log('Champs obligatoires:', requiredFields);
 
     const nom = requiredString(body.nom);
     const prenom = requiredString(body.prenom);
@@ -89,8 +101,10 @@ serve(async (req) => {
     const situation_actuelle = requiredString(body.situation_actuelle);
     const niveau_informatique = requiredString(body.niveau_informatique);
     const photo_participant_url = requiredString(body.photo_participant_url);
+    const possede_ordinateur =
+      typeof body.possede_ordinateur === 'boolean' ? body.possede_ordinateur : null;
 
-    const requiredFields: Array<[string, string | null]> = [
+    const requiredPairs: Array<[string, string | null]> = [
       ['nom', nom],
       ['prenom', prenom],
       ['date_naissance', date_naissance],
@@ -101,7 +115,9 @@ serve(async (req) => {
       ['photo_participant_url', photo_participant_url],
     ];
 
-    for (const [field, value] of requiredFields) {
+    console.log('Champs obligatoires:', requiredPairs);
+
+    for (const [field, value] of requiredPairs) {
       if (!value) {
         return jsonResponse(
           {
@@ -113,6 +129,18 @@ serve(async (req) => {
           400,
         );
       }
+    }
+
+    if (possede_ordinateur === null) {
+      return jsonResponse(
+        {
+          success: false,
+          error_code: 'VALIDATION_ERROR',
+          field: 'possede_ordinateur',
+          error: 'Champ obligatoire manquant: possede_ordinateur.',
+        },
+        400,
+      );
     }
 
     const { data: inscription, error: insertError } = await supabase
@@ -129,7 +157,8 @@ serve(async (req) => {
         situation_actuelle,
         domaine_activite: body.domaine_activite ?? null,
         niveau_informatique,
-        objectif_formation,
+        possede_ordinateur,
+        objectif_formation: body.objectif_formation ?? null,
         photo_participant_url,
         cv_url: body.cv_url ?? null,
         fcm_token: body.fcm_token ?? null,
@@ -143,6 +172,21 @@ serve(async (req) => {
     if (insertError) {
       console.error('Insert error:', insertError);
       const pgCode = (insertError as any)?.code?.toString() ?? '';
+      const insertMessage = (insertError as any)?.message ?? '';
+      const insertDetails = (insertError as any)?.details ?? '';
+
+      if (isNetworkTlsError(insertMessage, insertDetails)) {
+        return jsonResponse(
+          {
+            success: false,
+            error_code: 'NETWORK_ERROR',
+            error:
+              'Incident réseau temporaire entre la fonction et la base de données. Réessayez dans quelques instants.',
+            details: insertDetails || null,
+          },
+          503,
+        );
+      }
 
       if (pgCode === '23505') {
         const duplicateField =
@@ -193,8 +237,8 @@ serve(async (req) => {
         {
           success: false,
           error_code: pgCode || 'DB_ERROR',
-          error: (insertError as any)?.message ?? 'Erreur base de données',
-          details: (insertError as any)?.details ?? null,
+          error: insertMessage || 'Erreur base de données',
+          details: insertDetails || null,
         },
         400,
       );
@@ -216,8 +260,8 @@ serve(async (req) => {
           body: JSON.stringify({
             to: inscription.fcm_token,
             notification: {
-              title: `Bienvenue ${fullName}!`,
-              body: 'Votre inscription est confirmée. Vous pouvez consulter votre profil.',
+              title: `Félicitations ${fullName} !`,
+              body: 'Votre inscription est confirmée. Rendez-vous chez LALEKOU INFORMATIQUE.',
               sound: 'default',
               image: inscription.photo_participant_url || undefined,
             },
@@ -248,6 +292,12 @@ serve(async (req) => {
       } catch (fcmError) {
         console.error('FCM error:', fcmError);
       }
+    } else {
+      if (!inscription?.fcm_token) {
+        console.log('FCM skipped: no fcm_token provided');
+      } else if (!FCM_KEY) {
+        console.error('FCM skipped: missing FCM_SERVER_KEY env var');
+      }
     }
 
     try {
@@ -255,7 +305,7 @@ serve(async (req) => {
         inscription_id: inscription.id,
         type: 'bienvenue',
         titre: `Bienvenue, ${inscription.prenom} !`,
-        corps: 'Votre place est confirmée chez NADIRX TECHNOLOGY.',
+        corps: 'Votre place est confirmée chez LALEKOU INFORMATIQUE.',
         envoyee: notification_sent,
         envoyee_at: notification_attempted ? new Date().toISOString() : null,
       });

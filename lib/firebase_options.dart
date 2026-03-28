@@ -1,15 +1,28 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 
 /// Configuration Firebase par défaut.
 /// Remplacez les valeurs par celles de votre projet Firebase.
 /// Pour générer ce fichier automatiquement: flutterfire configure
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
-    if (const bool.fromEnvironment('dart.library.html')) {
+    if (kIsWeb) {
       return web;
     }
-    // Pour Android par défaut
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return ios;
+    }
     return android;
+  }
+
+  /// Indique si les options Firebase de la plateforme courante sont renseignées
+  /// (pas les placeholders `YOUR_*` du template).
+  static bool get isCurrentPlatformConfigured {
+    final opts = currentPlatform;
+    return opts.apiKey.isNotEmpty &&
+        !opts.apiKey.startsWith('YOUR_') &&
+        opts.appId.isNotEmpty &&
+        !opts.appId.startsWith('YOUR_');
   }
 
   /// Configuration Firebase pour Android.

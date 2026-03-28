@@ -26,6 +26,7 @@ export interface Inscription {
   situation_actuelle: string;
   domaine_activite?: string;
   niveau_informatique: string;
+  possede_ordinateur: boolean;
   objectif_formation: string;
   photo_participant_url: string;
   cv_url?: string;

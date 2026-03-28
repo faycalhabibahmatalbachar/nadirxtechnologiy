@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class SessionFormationEntity {
   final String id;
   final String titre;
@@ -110,12 +112,38 @@ class ProgrammeJour {
   String get modulesFormatted => modules.join(' • ');
 
   factory ProgrammeJour.fromJson(Map<String, dynamic> json) {
+    final modulesRaw = json['modules'];
+    if (kDebugMode && modulesRaw is List && modulesRaw.isNotEmpty) {
+      final first = modulesRaw.first;
+      debugPrint(
+        'ProgrammeJour.fromJson modulesRaw[0] runtimeType=${first.runtimeType}',
+      );
+      if (first is Map) {
+        debugPrint(
+          'ProgrammeJour.fromJson modulesRaw[0] keys=${first.keys.take(10).toList()}',
+        );
+      }
+    }
     return ProgrammeJour(
       jour: json['jour'] as int,
       titre: json['titre'] as String,
-      modules: (json['modules'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ?? [],
+      modules: (modulesRaw as List<dynamic>?)
+              ?.map((e) {
+                if (e is String) return e;
+                if (e is Map<String, dynamic>) {
+                  // Supabase peut renvoyer des objets au lieu de strings.
+                  // On tente quelques clés courantes, sinon fallback sur `toString()`.
+                  final candidate = e['titre'] ??
+                      e['module'] ??
+                      e['nom'] ??
+                      e['name'] ??
+                      e['label'];
+                  return candidate?.toString() ?? e.toString();
+                }
+                return e.toString();
+              })
+              .toList() ??
+          [],
     );
   }
 

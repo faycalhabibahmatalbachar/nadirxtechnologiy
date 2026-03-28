@@ -38,7 +38,7 @@ dependencies:
 
   # Photo / Upload
   image_picker: ^1.1.2
-  image_cropper: ^7.1.0
+  image_cropper: ^12.1.0
   file_picker: ^8.0.3
   cached_network_image: ^3.3.1
 

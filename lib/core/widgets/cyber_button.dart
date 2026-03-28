@@ -62,6 +62,9 @@ class CyberButton extends StatelessWidget {
                   : const SizedBox.shrink(),
           label: Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
             style: GoogleFonts.inter(
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -112,6 +115,9 @@ class CyberButton extends StatelessWidget {
                 : const SizedBox.shrink(),
         label: Text(
           label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          softWrap: false,
           style: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w700,

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:universal_io/io.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show FileOptions;
@@ -26,6 +25,7 @@ class InscriptionFormData {
   String situationActuelle = 'etudiant';
   String? domaineActivite;
   String niveauInformatique = 'debutant';
+  bool? possedeOrdinateur;
   String objectifFormation = '';
   String? photoPath;
   Uint8List? photoBytes;
@@ -51,6 +51,7 @@ class InscriptionFormData {
       'situation_actuelle': situationActuelle,
       'domaine_activite': domaineActivite,
       'niveau_informatique': niveauInformatique,
+      'possede_ordinateur': possedeOrdinateur,
       'objectif_formation': objectifFormation,
       'photo_participant_url': photoUrl,
       'cv_url': cvUrl,
@@ -122,9 +123,11 @@ class InscriptionFormNotifier extends StateNotifier<InscriptionFormState> {
       final photoUrl = await photoUploadFuture;
       final cvUrl = await cvUploadFuture;
 
-      // Get FCM token
+      // Get FCM token (ne pas bloquer l'inscription si FCM indisponible)
       state = state.copyWith(progressMessage: 'Enregistrement du dossier...');
-      final fcmToken = kIsWeb ? null : await FirebaseMessaging.instance.getToken();
+      final String? fcmToken = kIsWeb
+          ? null
+          : await _tryGetFcmToken();
 
       // Submit to Edge Function with retry logic for network errors
       final response = await RetryHelper.retryIf(
@@ -142,7 +145,8 @@ class InscriptionFormNotifier extends StateNotifier<InscriptionFormState> {
           return errorStr.contains('timeout') ||
                  errorStr.contains('connection') ||
                  errorStr.contains('network') ||
-                 errorStr.contains('failed to fetch');
+                 errorStr.contains('failed to fetch') ||
+                 errorStr.contains('tls handshake eof');
         },
         maxAttempts: 3,
         initialDelay: 1000,
@@ -200,8 +204,13 @@ class InscriptionFormNotifier extends StateNotifier<InscriptionFormState> {
         inscription: InscriptionEntity.fromJson(payload['data']),
         session: SessionFormationEntity.fromJson(sessionData),
       );
-    } catch (e) {
-      // Utiliser le gestionnaire d'erreurs pour afficher un message amical
+    } catch (e, st) {
+      // Utiliser le gestionnaire d'erreurs pour afficher un message amical.
+      // On log l'erreur brute uniquement en debug pour ne pas polluer la UI.
+      if (kDebugMode) {
+        debugPrint('Inscription submit error: $e');
+        debugPrintStack(stackTrace: st);
+      }
       final friendlyMessage = ErrorHandler.getFriendlyMessage(e);
       state = state.copyWith(
         status: InscriptionStatus.error,
@@ -274,6 +283,18 @@ class InscriptionFormNotifier extends StateNotifier<InscriptionFormState> {
   void reset() {
     formData = InscriptionFormData();
     state = const InscriptionFormState();
+  }
+
+  static Future<String?> _tryGetFcmToken() async {
+    try {
+      return await FirebaseMessaging.instance.getToken();
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('FCM getToken indisponible, envoi sans token: $e');
+        debugPrintStack(stackTrace: st);
+      }
+      return null;
+    }
   }
 }
 

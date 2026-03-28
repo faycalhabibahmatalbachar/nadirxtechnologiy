@@ -66,10 +66,13 @@ class InscriptionEntity {
       telephone: json['telephone'] as String,
       ville: json['ville'] as String,
       quartier: json['quartier'] as String?,
-      situationActuelle: json['situation_actuelle'] as String,
+      situationActuelle:
+          (json['situation_actuelle'] as String?) ?? 'etudiant',
       domaineActivite: json['domaine_activite'] as String?,
-      niveauInformatique: json['niveau_informatique'] as String,
-      objectifFormation: json['objectif_formation'] as String,
+      niveauInformatique:
+          (json['niveau_informatique'] as String?) ?? 'debutant',
+      objectifFormation:
+          (json['objectif_formation'] as String?) ?? '',
       photoParticipantUrl: json['photo_participant_url'] as String,
       cvUrl: json['cv_url'] as String?,
       statut: json['statut'] as String? ?? 'confirme',

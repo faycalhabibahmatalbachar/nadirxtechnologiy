@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:supabase_flutter/supabase_flutter.dart' show FunctionException;
+import 'package:supabase_flutter/supabase_flutter.dart'
+    show FunctionException, PostgrestException, StorageException;
 
 enum ErrorType {
   noInternet, // Pas de connexion internet
@@ -48,6 +49,18 @@ class ErrorHandler {
     return null;
   }
 
+  static String? _messageFromEdgePayload(Map<String, dynamic> payload) {
+    final m = (payload['error'] ?? payload['message'] ?? '').toString().trim();
+    final hint = (payload['hint'] ?? '').toString().trim();
+    final field = (payload['field'] ?? '').toString().trim();
+    if (m.isEmpty) return null;
+    var out = hint.isNotEmpty ? '$m\n$hint' : m;
+    if (field.isNotEmpty && !m.contains(field)) {
+      out = '$out\n($field)';
+    }
+    return out;
+  }
+
   static String? _extractReadableExceptionMessage(dynamic error) {
     final raw = error.toString().trim();
     if (raw.isEmpty) return null;
@@ -82,11 +95,42 @@ class ErrorHandler {
 
   /// Parse une exception et retourne un message amical.
   static String getFriendlyMessage(dynamic error) {
+    if (error is TypeError) {
+      final t = error.toString();
+      if (t.contains('subtype') && t.contains('null')) {
+        return 'Données reçues incomplètes.\nRéessayez ou contactez le support.';
+      }
+    }
+
+    if (error is StorageException) {
+      final raw = error.message.trim();
+      final alt = (error.error ?? '').toString().trim();
+      final text = raw.isNotEmpty ? raw : alt;
+      if (text.isNotEmpty) {
+        final lower = text.toLowerCase();
+        if (lower.contains('network') ||
+            lower.contains('socket') ||
+            lower.contains('failed host lookup') ||
+            lower.contains('connection')) {
+          return 'Pas de connexion internet.\nVérifiez votre réseau et réessayez.';
+        }
+        return text.length <= 400 ? text : '${text.substring(0, 397)}...';
+      }
+    }
+
+    if (error is PostgrestException) {
+      final base = error.message.trim();
+      final hint = (error.hint ?? '').toString().trim();
+      if (base.isNotEmpty) {
+        final out = hint.isNotEmpty ? '$base\n$hint' : base;
+        return out.length <= 400 ? out : '${out.substring(0, 397)}...';
+      }
+    }
+
     final payload = _extractEdgePayload(error);
     if (payload != null) {
-      final message = (payload['error'] ?? '').toString().trim();
-      final hint = (payload['hint'] ?? '').toString().trim();
-      if (message.isNotEmpty) return hint.isNotEmpty ? '$message\n$hint' : message;
+      final fromPayload = _messageFromEdgePayload(payload);
+      if (fromPayload != null) return fromPayload;
     }
 
     final readable = _extractReadableExceptionMessage(error);

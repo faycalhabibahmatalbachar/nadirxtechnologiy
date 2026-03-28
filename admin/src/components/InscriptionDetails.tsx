@@ -305,6 +305,11 @@ export default function InscriptionDetails({ inscription, onClose, onUpdate }: I
             <div className="space-y-2">
               {hasValue(inscription.situation_actuelle) && <InfoRow icon={<Briefcase className="w-4 h-4" />} label="Situation" value={inscription.situation_actuelle} />}
               {hasValue(inscription.niveau_informatique) && <InfoRow icon={<Code className="w-4 h-4" />} label="Niveau IT" value={inscription.niveau_informatique} />}
+              <InfoRow
+                icon={<span>💻</span>}
+                label="Ordinateur"
+                value={inscription.possede_ordinateur ? 'Oui' : 'Non'}
+              />
             </div>
           </div>
 

@@ -80,9 +80,6 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
                   // Card détails formation
                   _buildFormationCard(),
                   const SizedBox(height: 20),
-                  // Message notification
-                  _buildNotificationMessage(),
-                  const SizedBox(height: 20),
                   // Numéro de dossier
                   _buildDossierNumber(),
                   const SizedBox(height: 32),
@@ -296,11 +293,6 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
             value: widget.session.lieu,
           ),
           CyberInfoRow(
-            icon: PhosphorIcons.users(),
-            label: 'Promotion',
-            value: 'Mai 2026 • ${widget.session.placesMax} participants max',
-          ),
-          CyberInfoRow(
             icon: PhosphorIcons.certificate(),
             label: 'Attestation',
             value: AppStrings.formationAttestation,
@@ -308,38 +300,6 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
         ],
       ),
     ).animate().fadeIn(duration: 300.ms, delay: 800.ms);
-  }
-
-  Widget _buildNotificationMessage() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.secondary.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.secondary.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            PhosphorIcons.bellRinging(),
-            color: AppColors.secondary,
-            size: 18,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              AppStrings.confirmedNotif,
-              style: GoogleFonts.inter(
-                color: AppColors.textSecondary,
-                fontSize: 13,
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(duration: 300.ms, delay: 900.ms);
   }
 
   Widget _buildDossierNumber() {

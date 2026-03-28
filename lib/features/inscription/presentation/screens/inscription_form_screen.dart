@@ -1,6 +1,5 @@
 import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -16,7 +15,6 @@ import '../../../../core/widgets/cyber_card.dart';
 import '../../../../core/widgets/terminal_loader.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../../shared/providers/fcm_provider.dart';
 import '../controllers/inscription_form_controller.dart';
 import '../controllers/photo_upload_controller.dart';
 
@@ -42,6 +40,7 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
   String _niveauInformatique = 'debutant';
   String _situationActuelle = 'etudiant';
   String? _commentConnu;
+  bool? _possedeOrdinateur;
 
   @override
   void dispose() {
@@ -62,6 +61,18 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
       );
       return;
     }
+    if (_ville == null || _ville!.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez sélectionner votre ville')),
+      );
+      return;
+    }
+    if (_possedeOrdinateur == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez indiquer si vous possédez un ordinateur')),
+      );
+      return;
+    }
     final photoState = ref.read(photoUploadControllerProvider);
     if (photoState.photoPath == null && photoState.photoBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -77,11 +88,12 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
       ..dateNaissance = _dateNaissance
       ..genre = _genre
       ..telephone = '+235${_telephoneController.text.replaceAll(' ', '')}'
-      ..ville = _ville ?? ''
+      ..ville = _ville!.trim()
       ..quartier = _quartierController.text.trim()
       ..situationActuelle = _situationActuelle
       ..domaineActivite = _domaineActiviteController.text.trim()
       ..niveauInformatique = _niveauInformatique
+      ..possedeOrdinateur = _possedeOrdinateur
       ..objectifFormation = _objectifController.text.trim()
       ..photoPath = photoPath
       ..photoBytes = photoState.photoBytes
@@ -99,10 +111,6 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
 
     ref.listen<InscriptionFormState>(inscriptionFormControllerProvider, (prev, next) {
       if (next.status == InscriptionStatus.success && next.inscription != null && next.session != null) {
-        showLocalNotification(
-          title: 'Bienvenue, ${next.inscription!.prenom} ! 🛡️',
-          body: 'Votre place est confirmée. NADIRX TECHNOLOGY vous attend.',
-        );
         context.go('/confirmed', extra: {
           'inscription': next.inscription,
           'session': next.session,
@@ -154,6 +162,11 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
                   const SizedBox(height: 16),
                   _buildNiveauSection(),
                   const SizedBox(height: 24),
+                  // Section Matériel
+                  _buildSectionTitle('Matériel'),
+                  const SizedBox(height: 16),
+                  _buildOrdinateurQuestion(),
+                  const SizedBox(height: 24),
                   // Section Photo
                   _buildSectionTitle(AppStrings.sectionPhoto),
                   const SizedBox(height: 16),
@@ -188,31 +201,137 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
 
   Widget _buildSectionTitle(String title) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
+          flex: 1,
           child: Container(
             height: 1,
             color: AppColors.border,
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            '[  $title  ]',
-            style: GoogleFonts.shareTechMono(
-              color: AppColors.primary,
-              fontSize: 11,
-              letterSpacing: 2,
+        Flexible(
+          flex: 5,
+          fit: FlexFit.loose,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              '[  $title  ]',
+              textAlign: TextAlign.center,
+              maxLines: 3,
+              softWrap: true,
+              style: GoogleFonts.shareTechMono(
+                color: AppColors.primary,
+                fontSize: 11,
+                letterSpacing: 1.2,
+                height: 1.25,
+              ),
             ),
           ),
         ),
         Expanded(
+          flex: 1,
           child: Container(
             height: 1,
             color: AppColors.border,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildOrdinateurQuestion() {
+    return CyberCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Possédez-vous un ordinateur ? *',
+            style: GoogleFonts.inter(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceVariant,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.border, width: 0.5),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _possedeOrdinateur = true;
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: _possedeOrdinateur == true
+                            ? AppColors.primary
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Oui je possède',
+                        style: GoogleFonts.inter(
+                          color: _possedeOrdinateur == true
+                              ? AppColors.background
+                              : AppColors.textPrimary,
+                          fontSize: 13,
+                          fontWeight: _possedeOrdinateur == true
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _possedeOrdinateur = false;
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: _possedeOrdinateur == false
+                            ? AppColors.primary
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Non',
+                        style: GoogleFonts.inter(
+                          color: _possedeOrdinateur == false
+                              ? AppColors.background
+                              : AppColors.textPrimary,
+                          fontSize: 13,
+                          fontWeight: _possedeOrdinateur == false
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

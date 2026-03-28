@@ -272,7 +272,7 @@ class CyberDropdown<T> extends StatelessWidget {
   }
 }
 
-class CyberDatePicker extends StatelessWidget {
+class CyberDatePicker extends StatefulWidget {
   final String? label;
   final DateTime? value;
   final void Function(DateTime)? onChanged;
@@ -292,7 +292,14 @@ class CyberDatePicker extends StatelessWidget {
     this.lastDate,
   });
 
-  String _formatDate(DateTime date) {
+  @override
+  State<CyberDatePicker> createState() => _CyberDatePickerState();
+}
+
+class _CyberDatePickerState extends State<CyberDatePicker> {
+  late final TextEditingController _controller;
+
+  static String _formatDate(DateTime date) {
     const months = [
       'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
       'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'
@@ -301,17 +308,52 @@ class CyberDatePicker extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: widget.value != null ? _formatDate(widget.value!) : '',
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _scrollDateTextToStart();
+    });
+  }
+
+  void _scrollDateTextToStart() {
+    _controller.selection = const TextSelection.collapsed(offset: 0);
+  }
+
+  @override
+  void didUpdateWidget(CyberDatePicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      final next = widget.value != null ? _formatDate(widget.value!) : '';
+      if (_controller.text != next) {
+        _controller.text = next;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _scrollDateTextToStart();
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return CyberTextField(
-      label: label,
-      hint: hint ?? 'Sélectionnez une date',
-      prefixIcon: prefixIcon ?? PhosphorIcons.calendarBlank(),
+      label: widget.label,
+      hint: widget.hint ?? 'Sélectionnez une date',
+      prefixIcon: widget.prefixIcon ?? PhosphorIcons.calendarBlank(),
       readOnly: true,
       onTap: () async {
-        final effectiveFirstDate = firstDate ?? DateTime(1950);
-        final effectiveLastDate = lastDate ?? DateTime.now();
+        final effectiveFirstDate = widget.firstDate ?? DateTime(1950);
+        final effectiveLastDate = widget.lastDate ?? DateTime.now();
 
-        final fallbackInitial = value ?? effectiveLastDate;
+        final fallbackInitial = widget.value ?? effectiveLastDate;
         final effectiveInitialDate = fallbackInitial.isAfter(effectiveLastDate)
             ? effectiveLastDate
             : (fallbackInitial.isBefore(effectiveFirstDate)
@@ -336,13 +378,11 @@ class CyberDatePicker extends StatelessWidget {
             );
           },
         );
-        if (picked != null && onChanged != null) {
-          onChanged!(picked);
+        if (picked != null && widget.onChanged != null) {
+          widget.onChanged!(picked);
         }
       },
-      controller: TextEditingController(
-        text: value != null ? _formatDate(value!) : '',
-      ),
+      controller: _controller,
     );
   }
 }

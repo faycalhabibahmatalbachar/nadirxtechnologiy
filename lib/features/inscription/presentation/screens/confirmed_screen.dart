@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:audioplayers/audioplayers.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -11,6 +12,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_dimensions.dart';
@@ -37,6 +39,7 @@ class ConfirmedScreen extends StatefulWidget {
 class _ConfirmedScreenState extends State<ConfirmedScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
+  final AudioPlayer _successPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -45,12 +48,32 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
       vsync: this,
       duration: AppDimensions.durationPulse,
     )..repeat(reverse: true);
+
+    _playSuccessSoundOncePerDossier();
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
+    _successPlayer.dispose();
     super.dispose();
+  }
+
+  Future<void> _playSuccessSoundOncePerDossier() async {
+    try {
+      final id = widget.inscription.id.trim();
+      if (id.isEmpty) return;
+
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'success_sound_played_$id';
+      final alreadyPlayed = prefs.getBool(key) == true;
+      if (alreadyPlayed) return;
+
+      await _successPlayer.play(AssetSource('audio/success.mp3'));
+      await prefs.setBool(key, true);
+    } catch (_) {
+      // ignore
+    }
   }
 
   Future<Uint8List?> _tryDownloadBytes(String url) async {

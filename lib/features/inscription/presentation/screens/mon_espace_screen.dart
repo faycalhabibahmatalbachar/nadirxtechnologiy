@@ -29,6 +29,13 @@ class _MonEspaceScreenState extends ConsumerState<MonEspaceScreen> {
   bool _isLoading = true;
   int _logoTapCount = 0;
 
+  void _showLaunchError() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Impossible d\'ouvrir le lien.')),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -70,10 +77,9 @@ class _MonEspaceScreenState extends ConsumerState<MonEspaceScreen> {
   }
 
   Future<void> _openWhatsapp() async {
-    final url = Uri.parse('https://wa.me/23568881226');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
+    final url = Uri.parse('https://wa.me/23568663737');
+    final ok = await launchUrl(url, mode: LaunchMode.externalApplication);
+    if (!ok) _showLaunchError();
   }
 
   Future<void> _makeCall() async {
@@ -85,9 +91,8 @@ class _MonEspaceScreenState extends ConsumerState<MonEspaceScreen> {
 
   Future<void> _openFacebook() async {
     final url = Uri.parse('https://www.facebook.com/faycalhabibahmat');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
+    final ok = await launchUrl(url, mode: LaunchMode.externalApplication);
+    if (!ok) _showLaunchError();
   }
 
   @override

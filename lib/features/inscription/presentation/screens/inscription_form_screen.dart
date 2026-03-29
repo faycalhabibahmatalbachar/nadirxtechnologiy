@@ -39,8 +39,10 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
   String? _ville;
   String _niveauInformatique = 'debutant';
   String _situationActuelle = 'etudiant';
-  String? _commentConnu;
+  String _commentConnu = 'facebook';
   bool? _possedeOrdinateur;
+
+  bool _showTopErrorBanner = false;
 
   @override
   void dispose() {
@@ -59,7 +61,14 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
-  void _submitForm() {
+  void _hideTopErrorBanner() {
+    if (!mounted) return;
+    setState(() {
+      _showTopErrorBanner = false;
+    });
+  }
+
+  Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
     if (_dateNaissance == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -121,15 +130,26 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
           'session': next.session,
         });
       } else if (next.status == InscriptionStatus.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.errorMessage ?? 'Erreur'),
-            action: SnackBarAction(
-              label: 'Ouvrir Google Form',
-              onPressed: _openGoogleFormExternal,
-            ),
-          ),
-        );
+        final msg = (next.errorMessage ?? 'Une erreur est survenue.').trim();
+        final lower = msg.toLowerCase();
+        final isOffline = lower.contains('connexion') ||
+            lower.contains('internet') ||
+            lower.contains('réseau') ||
+            lower.contains('reseau') ||
+            lower.contains('hors ligne') ||
+            lower.contains('offline');
+
+        if (mounted) {
+          if (isOffline) {
+            setState(() {
+              _showTopErrorBanner = true;
+            });
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(msg.isEmpty ? 'Erreur' : msg)),
+            );
+          }
+        }
       }
     });
 
@@ -147,48 +167,108 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
       body: Stack(
         children: [
           const CyberBackground(child: SizedBox.expand()),
-          // Formulaire
-          Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppDimensions.paddingScreen),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  _buildHeader(),
-                  const SizedBox(height: 24),
-                  // Section Identité
-                  _buildSectionTitle(AppStrings.sectionIdentite),
-                  const SizedBox(height: 16),
-                  _buildIdentiteSection(),
-                  const SizedBox(height: 24),
-                  // Section Contact
-                  _buildSectionTitle(AppStrings.sectionContact),
-                  const SizedBox(height: 16),
-                  _buildContactSection(),
-                  const SizedBox(height: 24),
-                  // Section Niveau
-                  _buildSectionTitle(AppStrings.sectionNiveau),
-                  const SizedBox(height: 16),
-                  _buildNiveauSection(),
-                  const SizedBox(height: 24),
-                  // Section Matériel
-                  _buildSectionTitle('Matériel'),
-                  const SizedBox(height: 16),
-                  _buildOrdinateurQuestion(),
-                  const SizedBox(height: 24),
-                  // Section Photo
-                  _buildSectionTitle(AppStrings.sectionPhoto),
-                  const SizedBox(height: 16),
-                  _buildPhotoSection(photoState),
-                  const SizedBox(height: 32),
-                  // Bouton de soumission
-                  _buildSubmitButton(formState),
-                  const SizedBox(height: 40),
-                ],
+          Column(
+            children: [
+              if (_showTopErrorBanner)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.fromLTRB(
+                    AppDimensions.paddingScreen,
+                    12,
+                    AppDimensions.paddingScreen,
+                    0,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceVariant,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.wifi_off,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Pas de connexion internet. Utilisez le formulaire alternatif.',
+                          style: GoogleFonts.inter(
+                            color: AppColors.textPrimary,
+                            fontSize: 12,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _openGoogleFormExternal,
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          textStyle: GoogleFonts.inter(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
+                        child: const Text('Ouvrir Google Form'),
+                      ),
+                      IconButton(
+                        onPressed: _hideTopErrorBanner,
+                        icon: const Icon(Icons.close, size: 18),
+                        color: AppColors.textSecondary,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                      ),
+                    ],
+                  ),
+                ),
+              Expanded(
+                child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppDimensions.paddingScreen),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header
+                        _buildHeader(),
+                        const SizedBox(height: 24),
+                        // Section Identité
+                        _buildSectionTitle(AppStrings.sectionIdentite),
+                        const SizedBox(height: 16),
+                        _buildIdentiteSection(),
+                        const SizedBox(height: 24),
+                        // Section Contact
+                        _buildSectionTitle(AppStrings.sectionContact),
+                        const SizedBox(height: 16),
+                        _buildContactSection(),
+                        const SizedBox(height: 24),
+                        // Section Niveau
+                        _buildSectionTitle(AppStrings.sectionNiveau),
+                        const SizedBox(height: 16),
+                        _buildNiveauSection(),
+                        const SizedBox(height: 24),
+                        // Section Matériel
+                        _buildSectionTitle('Matériel'),
+                        const SizedBox(height: 16),
+                        _buildOrdinateurQuestion(),
+                        const SizedBox(height: 24),
+                        // Section Photo
+                        _buildSectionTitle(AppStrings.sectionPhoto),
+                        const SizedBox(height: 16),
+                        _buildPhotoSection(photoState),
+                        const SizedBox(height: 32),
+                        // Bouton de soumission
+                        _buildSubmitButton(formState),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
           // Overlay de chargement
           if (formState.status == InscriptionStatus.loading)

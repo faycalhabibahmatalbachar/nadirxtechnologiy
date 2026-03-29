@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:io';
@@ -52,6 +53,82 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
     super.dispose();
   }
 
+  Future<Uint8List?> _tryDownloadBytes(String url) async {
+    try {
+      final uri = Uri.tryParse(url);
+      if (uri == null) return null;
+
+      final client = HttpClient();
+      final req = await client.getUrl(uri);
+      final res = await req.close();
+      if (res.statusCode < 200 || res.statusCode >= 300) return null;
+      return await consolidateHttpClientResponseBytes(res);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<ui.Image?> _decodeImage(Uint8List bytes) async {
+    try {
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      return frame.image;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Uint8List?> _composeQrWithAvatar({
+    required Uint8List qrPngBytes,
+    required Uint8List avatarBytes,
+  }) async {
+    final qrImg = await _decodeImage(qrPngBytes);
+    final avatarImg = await _decodeImage(avatarBytes);
+    if (qrImg == null || avatarImg == null) return null;
+
+    final width = qrImg.width.toDouble();
+    final height = qrImg.height.toDouble();
+
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final size = Size(width, height);
+
+    canvas.drawImage(qrImg, Offset.zero, Paint());
+
+    final center = Offset(width / 2, height / 2);
+    final avatarRadius = width * 0.15;
+    final borderRadius = avatarRadius + (width * 0.012);
+
+    // White border circle
+    canvas.drawCircle(
+      center,
+      borderRadius,
+      Paint()..color = const Color(0xFFFFFFFF),
+    );
+
+    // Clip avatar in circle
+    final avatarRect = Rect.fromCircle(center: center, radius: avatarRadius);
+    canvas.save();
+    canvas.clipPath(Path()..addOval(avatarRect));
+    canvas.drawImageRect(
+      avatarImg,
+      Rect.fromLTWH(
+        0,
+        0,
+        avatarImg.width.toDouble(),
+        avatarImg.height.toDouble(),
+      ),
+      avatarRect,
+      Paint()..filterQuality = FilterQuality.high,
+    );
+    canvas.restore();
+
+    final picture = recorder.endRecording();
+    final outImg = await picture.toImage(width.toInt(), height.toInt());
+    final byteData = await outImg.toByteData(format: ui.ImageByteFormat.png);
+    return byteData?.buffer.asUint8List();
+  }
+
   Future<void> _share() async {
     final dossier = widget.inscription.shortId;
     final fullName = widget.inscription.nomComplet;
@@ -71,7 +148,7 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
     ].join('\n');
 
     try {
-      final qrData = 'NADIRX|DOSSIER:$dossier|ID:${widget.inscription.id}';
+      final qrData = AppStrings.googleFormUrl;
       final painter = QrPainter(
         data: qrData,
         version: QrVersions.auto,
@@ -90,9 +167,24 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
         return;
       }
 
+      Uint8List finalQrBytes = bytes;
+      final photoUrl = widget.inscription.photoParticipantUrl.trim();
+      if (photoUrl.isNotEmpty) {
+        final avatarBytes = await _tryDownloadBytes(photoUrl);
+        if (avatarBytes != null && avatarBytes.isNotEmpty) {
+          final composed = await _composeQrWithAvatar(
+            qrPngBytes: bytes,
+            avatarBytes: avatarBytes,
+          );
+          if (composed != null && composed.isNotEmpty) {
+            finalQrBytes = composed;
+          }
+        }
+      }
+
       final dir = await getTemporaryDirectory();
       final file = File('${dir.path}/nadirx_dossier_$dossier.png');
-      await file.writeAsBytes(bytes, flush: true);
+      await file.writeAsBytes(finalQrBytes, flush: true);
 
       await Share.shareXFiles(
         [XFile(file.path)],

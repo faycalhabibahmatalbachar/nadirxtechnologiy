@@ -88,7 +88,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: AppColors.error.withOpacity(0.15),
+                      color: AppColors.error.withAlpha(38),
                       shape: BoxShape.circle,
                       border: Border.all(color: AppColors.error, width: 1),
                     ),
@@ -154,10 +154,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: AppColors.error.withOpacity(0.1),
+                              color: AppColors.error.withAlpha(26),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: AppColors.error.withOpacity(0.3),
+                                color: AppColors.error.withAlpha(77),
                               ),
                             ),
                             child: Row(

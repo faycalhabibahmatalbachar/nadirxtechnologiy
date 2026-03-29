@@ -223,12 +223,12 @@ class _ShieldPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity(opacity)
+      ..color = color.withAlpha((opacity * 255).round().clamp(0, 255))
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 
     final fillPaint = Paint()
-      ..color = color.withOpacity(0.1)
+      ..color = color.withAlpha(26)
       ..style = PaintingStyle.fill;
 
     final path = Path();
@@ -251,7 +251,7 @@ class _ShieldPainter extends CustomPainter {
       text: TextSpan(
         text: 'N',
         style: TextStyle(
-          color: color.withOpacity(opacity),
+          color: color.withAlpha((opacity * 255).round().clamp(0, 255)),
           fontSize: size.width * 0.4,
           fontFamily: 'ShareTechMono',
           fontWeight: FontWeight.bold,

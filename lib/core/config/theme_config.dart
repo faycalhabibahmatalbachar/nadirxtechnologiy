@@ -177,7 +177,7 @@ class AppTheme {
 
         chipTheme: ChipThemeData(
           backgroundColor: AppColors.surface,
-          selectedColor: AppColors.primary.withOpacity(0.2),
+          selectedColor: AppColors.primary.withAlpha(51),
           disabledColor: AppColors.surfaceVariant,
           labelStyle: GoogleFonts.inter(
             fontSize: 13,

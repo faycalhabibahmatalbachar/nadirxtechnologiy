@@ -127,7 +127,7 @@ class _SplashScreenState extends State<SplashScreen>
                     '+23568881226 — 91912191',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.shareTechMono(
-                      color: AppColors.primary.withOpacity(0.85),
+                      color: AppColors.primary.withAlpha(217),
                       fontSize: 16,
                       height: 1.35,
                       letterSpacing: 0.5,
@@ -146,7 +146,7 @@ class _SplashScreenState extends State<SplashScreen>
                 children: [
                   Icon(
                     PhosphorIcons.shieldCheck(),
-                    color: AppColors.primary.withOpacity(0.5),
+                    color: AppColors.primary.withAlpha(128),
                     size: 16,
                   ),
                   const SizedBox(width: 8),

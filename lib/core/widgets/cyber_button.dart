@@ -166,7 +166,7 @@ class CyberChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? (selectedColor ?? AppColors.primary.withOpacity(0.15))
+              ? (selectedColor ?? AppColors.primary.withAlpha(38))
               : (unselectedColor ?? AppColors.surfaceVariant),
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
           border: Border.all(

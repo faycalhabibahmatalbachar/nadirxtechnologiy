@@ -130,7 +130,7 @@ class _MatrixPainterWidget extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final textStyle = TextStyle(
-      color: AppColors.primary.withOpacity(opacity),
+      color: AppColors.primary.withAlpha((opacity * 255).round().clamp(0, 255)),
       fontSize: 14,
       fontFamily: 'Courier',
     );

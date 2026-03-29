@@ -148,7 +148,7 @@ class _TerminalProgressOverlayState extends State<TerminalProgressOverlay> {
 
     return Positioned.fill(
       child: Container(
-        color: AppColors.background.withOpacity(0.9),
+        color: AppColors.background.withAlpha(230),
         child: Center(
           child: Container(
             padding: const EdgeInsets.all(24),

@@ -215,7 +215,7 @@ class _MonEspaceScreenState extends ConsumerState<MonEspaceScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.12),
+              color: AppColors.primary.withAlpha(31),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.primary, width: 1),
             ),
@@ -343,9 +343,9 @@ class _MonEspaceScreenState extends ConsumerState<MonEspaceScreen> {
               margin: const EdgeInsets.only(top: 12),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withAlpha(26),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                border: Border.all(color: AppColors.primary.withAlpha(77)),
               ),
               child: Row(
                 children: [

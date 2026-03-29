@@ -7,7 +7,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/widgets/cyber_background.dart';
 import '../../../../core/widgets/cyber_card.dart';
@@ -145,6 +144,21 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
     }
   }
 
+  String _getTagLabel(String? tag) {
+    switch (tag) {
+      case 'prioritaire':
+        return 'Prioritaire';
+      case 'a_rappeler':
+        return 'À rappeler';
+      case 'doublon':
+        return 'Doublon';
+      case 'vip':
+        return 'VIP';
+      default:
+        return 'Normal';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -210,6 +224,9 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
             // Identité + ID
             _buildIdentitySection(),
             const SizedBox(height: 24),
+            // Contact
+            _buildContactSection(),
+            const SizedBox(height: 24),
             // Photo participant (cadre 4x4)
             _buildPhotoSection(),
             const SizedBox(height: 24),
@@ -252,6 +269,12 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
               fontSize: 12,
             ),
           ),
+          const SizedBox(height: 10),
+          _buildInfoBadge(
+            _getTagLabel(_inscription!['tag_admin'] as String?),
+            PhosphorIcons.tag(),
+            color: _getTagColor(_inscription!['tag_admin'] as String?),
+          ),
         ],
       ),
     ).animate().fadeIn(duration: 300.ms);
@@ -281,7 +304,7 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.5)),
+                  border: Border.all(color: AppColors.primary.withAlpha(128)),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
@@ -367,23 +390,23 @@ class _DossierDetailScreenState extends ConsumerState<DossierDetailScreen> {
     ).animate().fadeIn(duration: 300.ms, delay: 200.ms);
   }
 
-  Widget _buildInfoBadge(String text, PhosphorIconData icon) {
+  Widget _buildInfoBadge(String text, PhosphorIconData icon, {Color? color}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: (color ?? AppColors.border)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: AppColors.textSecondary, size: 14),
+          Icon(icon, color: color ?? AppColors.textSecondary, size: 14),
           const SizedBox(width: 6),
           Text(
             text,
             style: GoogleFonts.inter(
-              color: AppColors.textPrimary,
+              color: color ?? AppColors.textPrimary,
               fontSize: 12,
             ),
           ),

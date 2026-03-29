@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class AppDimensions {
   const AppDimensions._();
 

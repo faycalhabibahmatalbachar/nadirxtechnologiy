@@ -240,7 +240,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
           color: isViewed ? AppColors.surfaceVariant : AppColors.surfaceElevated,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isViewed ? AppColors.border : AppColors.primary.withOpacity(0.3),
+            color: isViewed ? AppColors.border : AppColors.primary.withAlpha(77),
           ),
         ),
         child: Row(
@@ -301,10 +301,10 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: _getTagColor(tag).withOpacity(0.15),
+                            color: _getTagColor(tag).withAlpha(38),
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(
-                              color: _getTagColor(tag).withOpacity(0.5),
+                              color: _getTagColor(tag).withAlpha(128),
                             ),
                           ),
                           child: Text(

@@ -79,7 +79,7 @@ class _GlitchTextState extends State<GlitchText> {
               widget.text,
               style: GoogleFonts.shareTechMono(
                 fontSize: widget.fontSize,
-                color: AppColors.error.withOpacity(0.5),
+                color: AppColors.error.withAlpha(128),
                 fontWeight: widget.fontWeight,
                 letterSpacing: widget.letterSpacing,
               ),
@@ -93,7 +93,7 @@ class _GlitchTextState extends State<GlitchText> {
               widget.text,
               style: GoogleFonts.shareTechMono(
                 fontSize: widget.fontSize,
-                color: AppColors.secondary.withOpacity(0.5),
+                color: AppColors.secondary.withAlpha(128),
                 fontWeight: widget.fontWeight,
                 letterSpacing: widget.letterSpacing,
               ),

@@ -114,7 +114,6 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
 
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-    final size = Size(width, height);
 
     canvas.drawImage(qrImg, Offset.zero, Paint());
 
@@ -158,7 +157,7 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
 
     final shareText = [
       'Inscription confirmée — NADIRX TECHNOLOGY',
-      '$fullName',
+      fullName,
       'N° dossier: $dossier',
       'Formation: ${widget.session.titre}',
       'Dates: ${widget.session.datesFormatted}',
@@ -176,8 +175,14 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
         data: qrData,
         version: QrVersions.auto,
         gapless: true,
-        color: const Color(0xFF000000),
-        emptyColor: const Color(0xFFFFFFFF),
+        eyeStyle: const QrEyeStyle(
+          eyeShape: QrEyeShape.square,
+          color: Color(0xFF000000),
+        ),
+        dataModuleStyle: const QrDataModuleStyle(
+          dataModuleShape: QrDataModuleShape.square,
+          color: Color(0xFF000000),
+        ),
       );
       final byteData = await painter.toImageData(
         768,
@@ -269,12 +274,13 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
         AnimatedBuilder(
           animation: _pulseController,
           builder: (context, child) {
+            final alpha = (0.08 * _pulseController.value * 255).round();
             return Container(
               width: 120,
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primary.withOpacity(0.08 * _pulseController.value),
+                color: AppColors.primary.withAlpha(alpha.clamp(0, 255)),
               ),
             );
           },
@@ -282,12 +288,13 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
         AnimatedBuilder(
           animation: _pulseController,
           builder: (context, child) {
+            final alpha = (0.15 * _pulseController.value * 255).round();
             return Container(
               width: 90,
               height: 90,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primary.withOpacity(0.15 * _pulseController.value),
+                color: AppColors.primary.withAlpha(alpha.clamp(0, 255)),
               ),
             );
           },

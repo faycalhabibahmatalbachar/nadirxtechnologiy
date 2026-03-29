@@ -38,8 +38,8 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
   DateTime? _dateNaissance;
   String? _ville;
   String _niveauInformatique = 'debutant';
-  String _situationActuelle = 'etudiant';
-  String _commentConnu = 'facebook';
+  final String _situationActuelle = 'etudiant';
+  final String _commentConnu = 'facebook';
   bool? _possedeOrdinateur;
 
   bool _showTopErrorBanner = false;
@@ -557,14 +557,14 @@ class _InscriptionFormScreenState extends ConsumerState<InscriptionFormScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.15) : AppColors.surfaceVariant,
+          color: isSelected ? color.withAlpha(38) : AppColors.surfaceVariant,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected ? color : AppColors.border,
             width: isSelected ? 1.5 : 0.5,
           ),
           boxShadow: isSelected
-              ? [BoxShadow(color: color.withOpacity(0.3), blurRadius: 12)]
+              ? [BoxShadow(color: color.withAlpha(77), blurRadius: 12)]
               : null,
         ),
         child: Column(

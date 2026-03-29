@@ -31,7 +31,8 @@ class CyberBackground extends StatelessWidget {
           Positioned.fill(
             child: CustomPaint(
               painter: GridPainter(
-                lineColor: const Color(0xFF00FF88).withOpacity(gridOpacity),
+                lineColor: const Color(0xFF00FF88)
+                    .withAlpha((gridOpacity * 255).round().clamp(0, 255)),
               ),
             ),
           ),
@@ -40,7 +41,8 @@ class CyberBackground extends StatelessWidget {
           Positioned.fill(
             child: CustomPaint(
               painter: ScanlinePainter(
-                lineColor: const Color(0xFF00FF88).withOpacity(scanlineOpacity),
+                lineColor: const Color(0xFF00FF88)
+                    .withAlpha((scanlineOpacity * 255).round().clamp(0, 255)),
               ),
             ),
           ),

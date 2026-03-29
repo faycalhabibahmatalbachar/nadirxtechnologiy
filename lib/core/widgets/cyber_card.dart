@@ -32,7 +32,7 @@ class CyberCard extends StatelessWidget {
         color: backgroundColor ?? AppColors.surfaceVariant,
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
-          color: borderColor ?? AppColors.primary.withOpacity(0.3),
+          color: borderColor ?? AppColors.primary.withAlpha(77),
           width: 1,
         ),
         boxShadow: withGlow

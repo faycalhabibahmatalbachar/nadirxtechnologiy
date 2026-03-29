@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -121,7 +120,7 @@ class PhotoUploadNotifier extends StateNotifier<PhotoUploadState> {
             toolbarWidgetColor: const Color(0xFF00FF88),
             backgroundColor: const Color(0xFF050508),
             activeControlsWidgetColor: const Color(0xFF00FF88),
-            dimmedLayerColor: const Color(0xFF050508).withOpacity(0.8),
+            dimmedLayerColor: const Color(0xFF050508).withAlpha(204),
             lockAspectRatio: true,
           ),
           IOSUiSettings(

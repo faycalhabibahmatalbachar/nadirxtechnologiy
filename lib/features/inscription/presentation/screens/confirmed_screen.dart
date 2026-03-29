@@ -115,6 +115,11 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
 
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, width, height),
+      Paint()..color = const Color(0xFFFFFFFF),
+    );
+
     canvas.drawImage(qrImg, Offset.zero, Paint());
 
     final center = Offset(width / 2, height / 2);
@@ -184,11 +189,21 @@ class _ConfirmedScreenState extends State<ConfirmedScreen>
           color: Color(0xFF000000),
         ),
       );
-      final byteData = await painter.toImageData(
-        768,
-        format: ui.ImageByteFormat.png,
-      );
 
+      const qrSize = 768.0;
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder);
+      final size = const Size(qrSize, qrSize);
+
+      canvas.drawRect(
+        const Rect.fromLTWH(0, 0, qrSize, qrSize),
+        Paint()..color = const Color(0xFFFFFFFF),
+      );
+      painter.paint(canvas, size);
+
+      final picture = recorder.endRecording();
+      final img = await picture.toImage(qrSize.toInt(), qrSize.toInt());
+      final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
       final bytes = byteData?.buffer.asUint8List();
       if (bytes == null) {
         await Share.share(shareText);
